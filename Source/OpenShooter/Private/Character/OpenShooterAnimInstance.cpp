@@ -2,8 +2,8 @@
 
 #include "Character/OpenShooterAnimInstance.h"
 
+#include "Character/OpenShooterCharacter.h"
 #include "GameFramework/CharacterMovementComponent.h"
-#include "OpenShooterCharacter.h"
 
 void UOpenShooterAnimInstance::NativeInitializeAnimation()
 {
