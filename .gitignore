@@ -79,4 +79,8 @@ node_modules/
 
 .idea/
 
+# Avoid version control of temporary files
 Content/ThirdParty/
+
+# Temporary
+Content/Characters/Epic/Animations/ToSelect/
