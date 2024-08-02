@@ -8,6 +8,7 @@
 
 #include "OpenShooterCharacter.generated.h"
 
+class UWidgetComponent;
 class USpringArmComponent;
 class UCameraComponent;
 class UInputMappingContext;
@@ -21,6 +22,10 @@ class AOpenShooterCharacter : public ACharacter
 {
     GENERATED_BODY()
 
+public:
+    AOpenShooterCharacter();
+
+private:
     /** Camera boom positioning the camera behind the character */
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components|Camera", meta = (AllowPrivateAccess = "true"))
     USpringArmComponent* CameraBoom;
@@ -45,8 +50,8 @@ class AOpenShooterCharacter : public ACharacter
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input", meta = (AllowPrivateAccess = "true"))
     UInputAction* LookAction;
 
-public:
-    AOpenShooterCharacter();
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Components|HUD", meta = (AllowPrivateAccess = "true"))
+    UWidgetComponent* OverHeadWidget;
 
 protected:
     /** Called for movement input */
