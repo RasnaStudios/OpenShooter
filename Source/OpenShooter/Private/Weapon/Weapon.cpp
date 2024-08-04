@@ -5,6 +5,7 @@
 #include "Character/OpenShooterCharacter.h"
 #include "Components/SphereComponent.h"
 #include "Components/WidgetComponent.h"
+#include "Net/UnrealNetwork.h"
 
 // Sets default values
 AWeapon::AWeapon()
@@ -33,6 +34,13 @@ AWeapon::AWeapon()
 
     PickupWidget = CreateDefaultSubobject<UWidgetComponent>(TEXT("PickupWidget"));
     PickupWidget->SetupAttachment(RootComponent);
+}
+
+void AWeapon::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+    Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+    DOREPLIFETIME(AWeapon, WeaponState);
 }
 
 void AWeapon::ShowPickupWidget(const bool bShow) const
@@ -74,4 +82,33 @@ void AWeapon::OnSphereEndOverlap(
     // Set the overlapping weapon for the character
     if (AOpenShooterCharacter* Character = Cast<AOpenShooterCharacter>(OtherActor))
         Character->SetOverlappingWeapon(nullptr);
+}
+
+// This function runs on the server does everything that needs to be done when the weapon state change, on the server.
+// The client will receive the state change and will run the OnRep_WeaponState function to update the client state. (e.g. hide the
+// pickup widget)
+void AWeapon::SetWeaponState(const EWeaponState State)
+{
+    WeaponState = State;
+    switch (WeaponState)
+    {
+        case EWeaponState::EWS_Equipped:
+            ShowPickupWidget(false);
+            AreaSphere->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+            break;
+        default:
+            break;
+    }
+}
+
+void AWeapon::OnRep_WeaponState(EWeaponState PreviousState)
+{
+    switch (WeaponState)
+    {
+        case EWeaponState::EWS_Equipped:
+            PickupWidget->SetVisibility(false);
+            break;
+        default:
+            break;
+    }
 }

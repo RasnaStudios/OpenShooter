@@ -8,6 +8,7 @@
 
 #include "OpenShooterCharacter.generated.h"
 
+class UCombatComponent;
 class AWeapon;
 class UWidgetComponent;
 class USpringArmComponent;
@@ -54,26 +55,44 @@ private:
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input", meta = (AllowPrivateAccess = "true"))
     UInputAction* LookAction;
 
+    /** Equip Input Action */
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input", meta = (AllowPrivateAccess = "true"))
+    UInputAction* EquipAction;
+
+    // The widget component that will be displayed above the character
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Components|HUD", meta = (AllowPrivateAccess = "true"))
     UWidgetComponent* OverHeadWidget;
 
+    // The weapon that the character is overlapping with
     UPROPERTY(VisibleAnywhere, ReplicatedUsing = OnRep_OverlappingWeapon, Category = "Weapon")
     AWeapon* OverlappingWeapon;
 
     UFUNCTION()
     void OnRep_OverlappingWeapon(const AWeapon* LastWeapon) const;
 
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components|Combat", meta = (AllowPrivateAccess = "true"))
+    UCombatComponent* Combat;
+
 protected:
+    // APawn interface
+    virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
+
+    virtual void BeginPlay() override;
+
+    virtual void PostInitializeComponents() override;
+
     /** Called for movement input */
     void Move(const FInputActionValue& Value);
 
     /** Called for looking input */
     void Look(const FInputActionValue& Value);
 
-    // APawn interface
-    virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
+    // Called when the Equip action is pressed
+    void EquipPressed();
 
-    virtual void BeginPlay() override;
+    // Remote Procedure Call sent to the server when the Equip action is pressed
+    UFUNCTION(Server, Reliable)
+    void ServerEquipPressed();
 
 public:
     /** Returns CameraBoom subobject **/
