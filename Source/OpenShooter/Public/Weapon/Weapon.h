@@ -29,6 +29,8 @@ public:
     // Sets default values for this actor's properties
     AWeapon();
 
+    virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+
     void ShowPickupWidget(bool bShow) const;
 
 protected:
@@ -50,8 +52,20 @@ private:
     TObjectPtr<USphereComponent> AreaSphere;
 
     UPROPERTY(VisibleAnywhere, Category = "Weapon Properties")
+    TObjectPtr<UWidgetComponent> PickupWidget;
+
+    // STATE
+public:
+    FORCEINLINE EWeaponState GetWeaponState() const { return WeaponState; }
+    void SetWeaponState(const EWeaponState State);
+
+private:
+    UFUNCTION()
+    void OnRep_WeaponState(EWeaponState PreviousState);
+
+    UPROPERTY(VisibleAnywhere, ReplicatedUsing = OnRep_WeaponState, Category = "Weapon Properties")
     EWeaponState WeaponState;
 
-    UPROPERTY(VisibleAnywhere, Category = "Weapon Properties")
-    TObjectPtr<UWidgetComponent> PickupWidget;
+public:
+    FORCEINLINE USphereComponent* GetAreaSphere() const { return AreaSphere; }
 };

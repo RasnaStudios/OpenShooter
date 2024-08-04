@@ -3,6 +3,7 @@
 #include "Character/OpenShooterCharacter.h"
 
 #include "Camera/CameraComponent.h"
+#include "Character/CombatComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "Components/WidgetComponent.h"
 #include "Engine/LocalPlayer.h"
@@ -55,6 +56,9 @@ AOpenShooterCharacter::AOpenShooterCharacter()
 
     OverHeadWidget = CreateDefaultSubobject<UWidgetComponent>(TEXT("OverHeadWidget"));
     OverHeadWidget->SetupAttachment(GetRootComponent());
+
+    Combat = CreateDefaultSubobject<UCombatComponent>(TEXT("CombatComponent"));
+    Combat->SetIsReplicated(true);    // This is enough to replicate the component, not need to replicate the properties
 }
 
 void AOpenShooterCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
@@ -70,6 +74,15 @@ void AOpenShooterCharacter::BeginPlay()
 {
     // Call the base class
     Super::BeginPlay();
+}
+
+void AOpenShooterCharacter::PostInitializeComponents()
+{
+    Super::PostInitializeComponents();
+    if (Combat)
+    {
+        Combat->Character = this;
+    }
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -99,6 +112,9 @@ void AOpenShooterCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInp
 
         // Looking
         EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &AOpenShooterCharacter::Look);
+
+        // Equip Weapon
+        EnhancedInputComponent->BindAction(EquipAction, ETriggerEvent::Triggered, this, &AOpenShooterCharacter::EquipPressed);
     }
     else
     {
@@ -171,4 +187,23 @@ void AOpenShooterCharacter::Look(const FInputActionValue& Value)
         AddControllerYawInput(LookAxisVector.X);
         AddControllerPitchInput(LookAxisVector.Y);
     }
+}
+
+void AOpenShooterCharacter::EquipPressed()
+{
+    if (Combat)
+    {
+        // If it's the server, run local function
+        if (HasAuthority())
+            Combat->EquipWeapon(OverlappingWeapon);
+        // If it's the client, run RPC
+        else
+            ServerEquipPressed();
+    }
+}
+
+void AOpenShooterCharacter::ServerEquipPressed_Implementation()
+{
+    if (Combat)
+        Combat->EquipWeapon(OverlappingWeapon);
 }
