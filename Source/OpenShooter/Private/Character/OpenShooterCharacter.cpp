@@ -12,6 +12,8 @@
 #include "GameFramework/Controller.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "InputActionValue.h"
+#include "Net/UnrealNetwork.h"
+#include "Weapon/Weapon.h"
 
 DEFINE_LOG_CATEGORY(LogTemplateCharacter);
 
@@ -55,6 +57,15 @@ AOpenShooterCharacter::AOpenShooterCharacter()
     OverHeadWidget->SetupAttachment(GetRootComponent());
 }
 
+void AOpenShooterCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+    Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+    // We need to replicate the OverlappingWeapon so that the client can show the pickup widget, but only the owner can interact
+    // with it so the widget is only shown on the client that owns the character
+    DOREPLIFETIME_CONDITION(AOpenShooterCharacter, OverlappingWeapon, COND_OwnerOnly);
+}
+
 void AOpenShooterCharacter::BeginPlay()
 {
     // Call the base class
@@ -96,6 +107,34 @@ void AOpenShooterCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInp
                  "intend to use the legacy system, then you will need to update this C++ file."),
             *GetNameSafe(this));
     }
+}
+
+// Called when the OverlappingWeapon is replicated to the client
+// This is called ONLY in the client when the OverlappingWeapon is set on the server
+void AOpenShooterCharacter::OnRep_OverlappingWeapon(const AWeapon* LastWeapon) const
+{
+    if (OverlappingWeapon)
+        OverlappingWeapon->ShowPickupWidget(true);
+    // hide the pickup widget for the last weapon
+    // this is done because the client only knows about the weapon that is overlapping with the character
+    if (LastWeapon)
+        LastWeapon->ShowPickupWidget(false);
+}
+
+// Called when the character overlaps with a weapon on the server only
+void AOpenShooterCharacter::SetOverlappingWeapon(AWeapon* Weapon)
+{
+    // hide the pickup widget for the last weapon
+    if (OverlappingWeapon)
+        OverlappingWeapon->ShowPickupWidget(false);
+
+    // set the overlapping weapon
+    OverlappingWeapon = Weapon;
+    // on the client, OnRep_OverlappingWeapon would be called, but not on the server
+    // so we need to call it manually on the server
+    if (IsLocallyControlled())
+        if (OverlappingWeapon)
+            OverlappingWeapon->ShowPickupWidget(true);
 }
 
 void AOpenShooterCharacter::Move(const FInputActionValue& Value)

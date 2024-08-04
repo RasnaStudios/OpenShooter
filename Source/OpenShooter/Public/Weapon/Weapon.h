@@ -7,6 +7,7 @@
 
 #include "Weapon.generated.h"
 
+class UWidgetComponent;
 class USphereComponent;
 
 UENUM(BlueprintType)
@@ -28,17 +29,29 @@ public:
     // Sets default values for this actor's properties
     AWeapon();
 
+    void ShowPickupWidget(bool bShow) const;
+
 protected:
     // Called when the game starts or when spawned
     virtual void BeginPlay() override;
 
+    UFUNCTION()
+    virtual void OnSphereOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp,
+        int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
+    UFUNCTION()
+    virtual void OnSphereEndOverlap(
+        UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
+
 private:
-    UPROPERTY(EditAnywhere, Category = "Weapon Properties", meta = (AllowPrivateAccess = "true"))
-    USkeletalMeshComponent* WeaponMesh;
+    UPROPERTY(EditAnywhere, Category = "Weapon Properties")
+    TObjectPtr<USkeletalMeshComponent> WeaponMesh;
 
-    UPROPERTY(EditAnywhere, Category = "Weapon Properties", meta = (AllowPrivateAccess = "true"))
-    USphereComponent* AreaSphere;
+    UPROPERTY(EditAnywhere, Category = "Weapon Properties")
+    TObjectPtr<USphereComponent> AreaSphere;
 
-    UPROPERTY(VisibleAnywhere)
+    UPROPERTY(VisibleAnywhere, Category = "Weapon Properties")
     EWeaponState WeaponState;
+
+    UPROPERTY(VisibleAnywhere, Category = "Weapon Properties")
+    TObjectPtr<UWidgetComponent> PickupWidget;
 };

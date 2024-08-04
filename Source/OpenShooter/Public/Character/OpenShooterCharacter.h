@@ -8,6 +8,7 @@
 
 #include "OpenShooterCharacter.generated.h"
 
+class AWeapon;
 class UWidgetComponent;
 class USpringArmComponent;
 class UCameraComponent;
@@ -24,6 +25,9 @@ class AOpenShooterCharacter : public ACharacter
 
 public:
     AOpenShooterCharacter();
+    virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+
+    void SetOverlappingWeapon(AWeapon* Weapon);
 
 private:
     /** Camera boom positioning the camera behind the character */
@@ -52,6 +56,12 @@ private:
 
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Components|HUD", meta = (AllowPrivateAccess = "true"))
     UWidgetComponent* OverHeadWidget;
+
+    UPROPERTY(VisibleAnywhere, ReplicatedUsing = OnRep_OverlappingWeapon, Category = "Weapon")
+    AWeapon* OverlappingWeapon;
+
+    UFUNCTION()
+    void OnRep_OverlappingWeapon(const AWeapon* LastWeapon) const;
 
 protected:
     /** Called for movement input */
