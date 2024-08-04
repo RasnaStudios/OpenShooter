@@ -30,6 +30,8 @@ public:
 
     void SetOverlappingWeapon(AWeapon* Weapon);
 
+    bool IsWeaponEquipped() const;
+
 private:
     /** Camera boom positioning the camera behind the character */
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components|Camera", meta = (AllowPrivateAccess = "true"))

@@ -153,6 +153,13 @@ void AOpenShooterCharacter::SetOverlappingWeapon(AWeapon* Weapon)
             OverlappingWeapon->ShowPickupWidget(true);
 }
 
+bool AOpenShooterCharacter::IsWeaponEquipped() const
+{
+    // Check if the character has a weapon equipped
+    // This works only if EquipWeapon is replicated
+    return Combat && Combat->EquippedWeapon;
+}
+
 void AOpenShooterCharacter::Move(const FInputActionValue& Value)
 {
     // input is a Vector2D
