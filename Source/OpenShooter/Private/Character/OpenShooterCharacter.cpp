@@ -58,7 +58,9 @@ AOpenShooterCharacter::AOpenShooterCharacter()
     OverHeadWidget->SetupAttachment(GetRootComponent());
 
     Combat = CreateDefaultSubobject<UCombatComponent>(TEXT("CombatComponent"));
-    Combat->SetIsReplicated(true);    // This is enough to replicate the component, not need to replicate the properties
+    Combat->SetIsReplicated(true);    // This is enough to replicate the component
+    // We want the combat component to replicate because it has replicated variables.
+    // The component itself needs to be replicated for it to have replicated variables.
 }
 
 void AOpenShooterCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
