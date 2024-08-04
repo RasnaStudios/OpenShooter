@@ -37,7 +37,7 @@ AOpenShooterCharacter::AOpenShooterCharacter()
 
     // Create a camera boom (pulls in towards the player if there is a collision)
     CameraBoom = CreateDefaultSubobject<USpringArmComponent>(TEXT("CameraBoom"));
-    CameraBoom->SetupAttachment(GetRootComponent());
+    CameraBoom->SetupAttachment(GetMesh());
     CameraBoom->TargetArmLength = 600.0f;          // The camera follows at this distance behind the character
     CameraBoom->bUsePawnControlRotation = true;    // Rotate the arm based on the controller
 
@@ -64,6 +64,8 @@ AOpenShooterCharacter::AOpenShooterCharacter()
 
     // Enable crouching
     GetCharacterMovement()->GetNavAgentPropertiesRef().bCanCrouch = true;
+    GetCharacterMovement()->CrouchedHalfHeight = 60.0f;
+    GetCharacterMovement()->MaxWalkSpeedCrouched = 200.0f;
 }
 
 void AOpenShooterCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
