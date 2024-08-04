@@ -18,11 +18,12 @@ class OPENSHOOTER_API UCombatComponent : public UActorComponent
 public:
     // Sets default values for this component's properties
     UCombatComponent();
-    virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
-
     // The character that owns this combat component is a friend of this class
     // This is to allow the character to access the protected and private members of this class
     friend class AOpenShooterCharacter;
+    virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+
+    virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
     // Equip a weapon
     void EquipWeapon(AWeapon* Weapon);
@@ -34,5 +35,6 @@ protected:
 private:
     AOpenShooterCharacter* Character;
 
+    UPROPERTY(Replicated)
     AWeapon* EquippedWeapon;
 };

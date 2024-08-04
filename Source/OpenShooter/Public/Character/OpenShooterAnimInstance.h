@@ -31,5 +31,8 @@ private:
     bool bIsInAir;
 
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Movement", meta = (AllowPrivateAccess = "true"))
-    float bIsAccelerating;
+    bool bIsAccelerating;
+
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Equipment", meta = (AllowPrivateAccess = "true"))
+    bool bWeaponEquipped;
 };
