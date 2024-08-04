@@ -61,6 +61,10 @@ private:
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input", meta = (AllowPrivateAccess = "true"))
     UInputAction* EquipAction;
 
+    /** Crunch Input Action */
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input", meta = (AllowPrivateAccess = "true"))
+    UInputAction* CrouchAction;
+
     // The widget component that will be displayed above the character
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Components|HUD", meta = (AllowPrivateAccess = "true"))
     UWidgetComponent* OverHeadWidget;
@@ -91,6 +95,9 @@ protected:
 
     // Called when the Equip action is pressed
     void EquipPressed();
+
+    // Called when the Equip action is pressed
+    void CrouchPressed();
 
     // Remote Procedure Call sent to the server when the Equip action is pressed
     UFUNCTION(Server, Reliable)

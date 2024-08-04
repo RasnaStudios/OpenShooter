@@ -31,4 +31,5 @@ void UOpenShooterAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
     bIsInAir = OpenShooterCharacter->GetCharacterMovement()->IsFalling();
     bIsAccelerating = OpenShooterCharacter->GetCharacterMovement()->GetCurrentAcceleration().Size() > 0;
     bWeaponEquipped = OpenShooterCharacter->IsWeaponEquipped();
+    bIsCrouched = OpenShooterCharacter->bIsCrouched;
 }

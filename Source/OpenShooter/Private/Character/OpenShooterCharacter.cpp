@@ -61,6 +61,9 @@ AOpenShooterCharacter::AOpenShooterCharacter()
     Combat->SetIsReplicated(true);    // This is enough to replicate the component
     // We want the combat component to replicate because it has replicated variables.
     // The component itself needs to be replicated for it to have replicated variables.
+
+    // Enable crouching
+    GetCharacterMovement()->GetNavAgentPropertiesRef().bCanCrouch = true;
 }
 
 void AOpenShooterCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
@@ -117,6 +120,9 @@ void AOpenShooterCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInp
 
         // Equip Weapon
         EnhancedInputComponent->BindAction(EquipAction, ETriggerEvent::Triggered, this, &AOpenShooterCharacter::EquipPressed);
+
+        // Crouch
+        EnhancedInputComponent->BindAction(CrouchAction, ETriggerEvent::Triggered, this, &AOpenShooterCharacter::CrouchPressed);
     }
     else
     {
@@ -208,6 +214,19 @@ void AOpenShooterCharacter::EquipPressed()
         // If it's the client, run RPC
         else
             ServerEquipPressed();
+    }
+}
+
+void AOpenShooterCharacter::CrouchPressed()
+{
+    UE_LOG(LogTemplateCharacter, Log, TEXT("Crouch Pressed"));
+    if (bIsCrouched)
+    {
+        UnCrouch();
+    }
+    else
+    {
+        Crouch();
     }
 }
 
