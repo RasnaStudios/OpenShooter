@@ -42,10 +42,14 @@ protected:
     UFUNCTION(Server, Reliable)
     void ServerSetAiming(bool bIsAiming);
 
+    // We need this to show strafing/leaning animations on all the clients
+    UFUNCTION()
+    void OnRep_EquippedWeapon();
+
 private:
     AOpenShooterCharacter* Character;
 
-    UPROPERTY(Replicated)
+    UPROPERTY(ReplicatedUsing = OnRep_EquippedWeapon)
     AWeapon* EquippedWeapon;
 
     UPROPERTY(Replicated)
