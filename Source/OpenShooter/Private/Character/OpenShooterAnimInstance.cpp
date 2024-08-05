@@ -32,4 +32,5 @@ void UOpenShooterAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
     bIsAccelerating = OpenShooterCharacter->GetCharacterMovement()->GetCurrentAcceleration().Size() > 0;
     bWeaponEquipped = OpenShooterCharacter->IsWeaponEquipped();
     bIsCrouched = OpenShooterCharacter->bIsCrouched;
+    bIsAiming = OpenShooterCharacter->IsAiming();
 }

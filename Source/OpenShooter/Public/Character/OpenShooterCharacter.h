@@ -32,6 +32,8 @@ public:
 
     bool IsWeaponEquipped() const;
 
+    bool IsAiming() const;
+
 private:
     /** Camera boom positioning the camera behind the character */
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components|Camera", meta = (AllowPrivateAccess = "true"))
@@ -64,6 +66,10 @@ private:
     /** Crunch Input Action */
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input", meta = (AllowPrivateAccess = "true"))
     UInputAction* CrouchAction;
+
+    /** Aim Input Action */
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input", meta = (AllowPrivateAccess = "true"))
+    UInputAction* AimAction;
 
     // The widget component that will be displayed above the character
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Components|HUD", meta = (AllowPrivateAccess = "true"))
@@ -102,6 +108,9 @@ protected:
     // Remote Procedure Call sent to the server when the Equip action is pressed
     UFUNCTION(Server, Reliable)
     void ServerEquipPressed();
+
+    void AimButtonPressed();
+    void AimButtonReleased();
 
 public:
     /** Returns CameraBoom subobject **/

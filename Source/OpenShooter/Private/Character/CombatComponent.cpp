@@ -16,6 +16,7 @@ void UCombatComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Out
     Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
     DOREPLIFETIME(UCombatComponent, EquippedWeapon);
+    DOREPLIFETIME(UCombatComponent, bAiming);
 }
 
 void UCombatComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
@@ -37,6 +38,25 @@ void UCombatComponent::EquipWeapon(AWeapon* Weapon)
         Character->GetMesh(), FAttachmentTransformRules::SnapToTargetIncludingScale, "RightHandSocket");
     EquippedWeapon->SetOwner(Character);
     UE_LOG(LogTemp, Warning, TEXT("Weapon Equipped!"));
+}
+
+void UCombatComponent::SetAiming(const bool bIsAiming)
+{
+    // we set this even if it won't be replicated immediately to the server
+    // this is because we want the client to know that the character is aiming
+    // so that the animation can be updated immediately.
+    // The server will eventually replicate this to all the clients
+    bAiming = bIsAiming;
+
+    // Then we call this function to tell the server to set the aiming state there
+    // if we would use only the one below, the client would have to wait for the server to replicate the variable
+    // to know that the character is aiming, which would cause a delay in the animation
+    ServerSetAiming(bIsAiming);
+}
+void UCombatComponent::ServerSetAiming_Implementation(const bool bIsAiming)
+{
+    // This is the function that the client calls to tell the server to set the aiming state
+    bAiming = bIsAiming;
 }
 
 // Called when the game starts
