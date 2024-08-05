@@ -41,4 +41,14 @@ private:
 
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Equipment", meta = (AllowPrivateAccess = "true"))
     bool bIsAiming;
+
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Movement", meta = (AllowPrivateAccess = "true"))
+    float YawOffset;    // for strafing
+
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Movement", meta = (AllowPrivateAccess = "true"))
+    float Lean;
+
+    FRotator CharacterRotation;
+    FRotator CharacterRotationLastFrame;
+    FRotator InterpolatedDeltaRotation;    // for interpolation
 };

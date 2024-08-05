@@ -3,6 +3,7 @@
 #include "Character/CombatComponent.h"
 
 #include "Character/OpenShooterCharacter.h"
+#include "GameFramework/CharacterMovementComponent.h"
 #include "Net/UnrealNetwork.h"
 #include "Weapon/Weapon.h"
 
@@ -37,6 +38,11 @@ void UCombatComponent::EquipWeapon(AWeapon* Weapon)
     EquippedWeapon->AttachToComponent(
         Character->GetMesh(), FAttachmentTransformRules::SnapToTargetIncludingScale, "RightHandSocket");
     EquippedWeapon->SetOwner(Character);
+
+    // We need this for the lean/strafing animation on the locally controlled character
+    Character->GetCharacterMovement()->bOrientRotationToMovement = false;
+    Character->bUseControllerRotationYaw = true;
+
     UE_LOG(LogTemp, Warning, TEXT("Weapon Equipped!"));
 }
 
@@ -53,6 +59,16 @@ void UCombatComponent::SetAiming(const bool bIsAiming)
     // to know that the character is aiming, which would cause a delay in the animation
     ServerSetAiming(bIsAiming);
 }
+
+void UCombatComponent::OnRep_EquippedWeapon()
+{
+    if (EquippedWeapon && Character)
+    {
+        Character->GetCharacterMovement()->bOrientRotationToMovement = false;
+        Character->bUseControllerRotationYaw = true;
+    }
+}
+
 void UCombatComponent::ServerSetAiming_Implementation(const bool bIsAiming)
 {
     // This is the function that the client calls to tell the server to set the aiming state
