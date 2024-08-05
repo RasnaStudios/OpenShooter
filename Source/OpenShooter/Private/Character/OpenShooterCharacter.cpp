@@ -64,7 +64,7 @@ AOpenShooterCharacter::AOpenShooterCharacter()
 
     // Enable crouching
     GetCharacterMovement()->GetNavAgentPropertiesRef().bCanCrouch = true;
-    GetCharacterMovement()->CrouchedHalfHeight = 60.0f;
+    GetCharacterMovement()->SetCrouchedHalfHeight(60.0f);
     GetCharacterMovement()->MaxWalkSpeedCrouched = 200.0f;
 }
 
@@ -125,6 +125,10 @@ void AOpenShooterCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInp
 
         // Crouch
         EnhancedInputComponent->BindAction(CrouchAction, ETriggerEvent::Triggered, this, &AOpenShooterCharacter::CrouchPressed);
+
+        // Aim
+        EnhancedInputComponent->BindAction(AimAction, ETriggerEvent::Started, this, &AOpenShooterCharacter::AimButtonPressed);
+        EnhancedInputComponent->BindAction(AimAction, ETriggerEvent::Completed, this, &AOpenShooterCharacter::AimButtonReleased);
     }
     else
     {
@@ -166,8 +170,13 @@ void AOpenShooterCharacter::SetOverlappingWeapon(AWeapon* Weapon)
 bool AOpenShooterCharacter::IsWeaponEquipped() const
 {
     // Check if the character has a weapon equipped
-    // This works only if EquipWeapon is replicated
+    // This works only if EquippedWeapon is replicated
     return Combat && Combat->EquippedWeapon;
+}
+
+bool AOpenShooterCharacter::IsAiming() const
+{
+    return Combat && Combat->bAiming;
 }
 
 void AOpenShooterCharacter::Move(const FInputActionValue& Value)
@@ -230,6 +239,17 @@ void AOpenShooterCharacter::CrouchPressed()
     {
         Crouch();
     }
+}
+
+void AOpenShooterCharacter::AimButtonPressed()
+{
+    if (Combat)
+        Combat->bAiming = true;
+}
+void AOpenShooterCharacter::AimButtonReleased()
+{
+    if (Combat)
+        Combat->bAiming = false;
 }
 
 void AOpenShooterCharacter::ServerEquipPressed_Implementation()
