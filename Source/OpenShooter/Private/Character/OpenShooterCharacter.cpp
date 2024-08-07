@@ -294,6 +294,16 @@ void AOpenShooterCharacter::AimOffset(float DeltaSeconds)
     }
 
     AimOffset_Pitch = GetBaseAimRotation().Pitch;
+    // If the character is not locally controlled, the pitch and yaw values are packaged together by the CharacterMovememntComponent
+    // Therefore the pitch ends up being not in [-90, 90] range. We need to adjust it only if the character is not locally
+    // controlled
+    if (!IsLocallyControlled() && AimOffset_Pitch > 90.f)
+    {
+        // we re-map the pitch from [270, 360) to [-90, 0)
+        const FVector2D InRange(270.f, 360.f);
+        const FVector2D OutRange(-90.f, 0.f);
+        AimOffset_Pitch = FMath::GetMappedRangeValueClamped(InRange, OutRange, AimOffset_Pitch);
+    }
 }
 
 void AOpenShooterCharacter::ServerEquipPressed_Implementation()
