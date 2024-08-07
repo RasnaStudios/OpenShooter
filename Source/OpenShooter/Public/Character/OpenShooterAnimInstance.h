@@ -51,4 +51,11 @@ private:
     FRotator CharacterRotation;
     FRotator CharacterRotationLastFrame;
     FRotator InterpolatedDeltaRotation;    // for interpolation
+
+    // Aim Offsets
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Movement", meta = (AllowPrivateAccess = "true"))
+    float AimOffset_Yaw;
+
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Movement", meta = (AllowPrivateAccess = "true"))
+    float AimOffset_Pitch;
 };

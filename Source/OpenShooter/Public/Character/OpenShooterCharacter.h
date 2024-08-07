@@ -90,8 +90,8 @@ protected:
     virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
     virtual void BeginPlay() override;
-
     virtual void PostInitializeComponents() override;
+    virtual void Tick(float DeltaSeconds) override;
 
     /** Called for movement input */
     void Move(const FInputActionValue& Value);
@@ -112,9 +112,18 @@ protected:
     void AimButtonPressed();
     void AimButtonReleased();
 
+    void AimOffset(float DeltaSeconds);
+
+private:
+    float AimOffset_Yaw;
+    float AimOffset_Pitch;
+    FRotator StartingAimRotation;
+
 public:
     /** Returns CameraBoom subobject **/
     FORCEINLINE USpringArmComponent* GetCameraBoom() const { return CameraBoom; }
     /** Returns FollowCamera subobject **/
     FORCEINLINE UCameraComponent* GetFollowCamera() const { return FollowCamera; }
+    FORCEINLINE float GetAimOffsetYaw() const { return AimOffset_Yaw; }
+    FORCEINLINE float GetAimOffsetPitch() const { return AimOffset_Pitch; }
 };

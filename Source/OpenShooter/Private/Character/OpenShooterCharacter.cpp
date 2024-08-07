@@ -13,6 +13,7 @@
 #include "GameFramework/Controller.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "InputActionValue.h"
+#include "Kismet/KismetMathLibrary.h"
 #include "Net/UnrealNetwork.h"
 #include "Weapon/Weapon.h"
 
@@ -94,6 +95,14 @@ void AOpenShooterCharacter::PostInitializeComponents()
     {
         Combat->Character = this;
     }
+}
+
+void AOpenShooterCharacter::Tick(float DeltaSeconds)
+{
+    Super::Tick(DeltaSeconds);
+
+    // Setting the aim offset
+    AimOffset(DeltaSeconds);
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -234,7 +243,6 @@ void AOpenShooterCharacter::EquipPressed()
 
 void AOpenShooterCharacter::CrouchPressed()
 {
-    UE_LOG(LogTemplateCharacter, Log, TEXT("Crouch Pressed"));
     if (bIsCrouched)
     {
         UnCrouch();
@@ -257,6 +265,35 @@ void AOpenShooterCharacter::AimButtonReleased()
 {
     if (Combat)
         Combat->SetAiming(false);
+}
+
+void AOpenShooterCharacter::AimOffset(float DeltaSeconds)
+{
+    if (Combat && Combat->EquippedWeapon == nullptr)
+        return;
+    FVector Velocity = GetVelocity();
+    Velocity.Z = 0;    // We only want the horizontal velocity
+    const float Speed = Velocity.Size();
+    const bool bIsInAir = GetCharacterMovement()->IsFalling();
+
+    if (Speed == 0 || !bIsInAir)    // standing still, not jumping
+    {
+        const FRotator CurrentAimRotation = FRotator(0, GetBaseAimRotation().Yaw, 0);
+        const FRotator DeltaRotation =
+            UKismetMathLibrary::NormalizedDeltaRotator(CurrentAimRotation, StartingAimRotation);    // the order were is important
+        // if we change the order, the sign of the finale yaw will be opposite
+        AimOffset_Yaw = DeltaRotation.Yaw;
+        bUseControllerRotationYaw = false;    // we don't want the controller to rotate the camera
+    }
+    // If we are moving or in the air,
+    if (Speed > 0.f || bIsInAir)
+    {
+        StartingAimRotation = FRotator(0, GetBaseAimRotation().Yaw, 0);
+        AimOffset_Yaw = 0.f;                 // when moving or in the air, we don't want the aim offset to be applied
+        bUseControllerRotationYaw = true;    // we want the controller to rotate the camera
+    }
+
+    AimOffset_Pitch = GetBaseAimRotation().Pitch;
 }
 
 void AOpenShooterCharacter::ServerEquipPressed_Implementation()
