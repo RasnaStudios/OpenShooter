@@ -10,6 +10,9 @@
 UCombatComponent::UCombatComponent()
 {
     PrimaryComponentTick.bCanEverTick = false;
+
+    BaseWalkSpeed = 600.0f;
+    AimWalkSpeed = 400.0f;
 }
 
 void UCombatComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
@@ -58,9 +61,30 @@ void UCombatComponent::SetAiming(const bool bIsAiming)
     // if we would use only the one below, the client would have to wait for the server to replicate the variable
     // to know that the character is aiming, which would cause a delay in the animation
     ServerSetAiming(bIsAiming);
+
+    UE_LOG(LogTemp, Warning, TEXT("Setting Aiming %d"), bIsAiming);
+
+    // Set the walk speed based on the aiming state
+    if (Character)
+    {
+        Character->GetCharacterMovement()->MaxWalkSpeed = bIsAiming ? AimWalkSpeed : BaseWalkSpeed;
+        UE_LOG(LogTemp, Warning, TEXT("Setting Walk Speed %f"), Character->GetCharacterMovement()->MaxWalkSpeed);
+    }
 }
 
-void UCombatComponent::OnRep_EquippedWeapon()
+void UCombatComponent::ServerSetAiming_Implementation(const bool bIsAiming)
+{
+    // This is the function that the client calls to tell the server to set the aiming state
+    bAiming = bIsAiming;
+
+    // Set the walk speed based on the aiming state
+    if (Character)
+    {
+        Character->GetCharacterMovement()->MaxWalkSpeed = bIsAiming ? AimWalkSpeed : BaseWalkSpeed;
+    }
+}
+
+void UCombatComponent::OnRep_EquippedWeapon() const
 {
     if (EquippedWeapon && Character)
     {
@@ -69,16 +93,14 @@ void UCombatComponent::OnRep_EquippedWeapon()
     }
 }
 
-void UCombatComponent::ServerSetAiming_Implementation(const bool bIsAiming)
-{
-    // This is the function that the client calls to tell the server to set the aiming state
-    bAiming = bIsAiming;
-}
-
 // Called when the game starts
 void UCombatComponent::BeginPlay()
 {
     Super::BeginPlay();
 
-    // ...
+    if (Character)
+    {
+        Character->GetCharacterMovement()->MaxWalkSpeed = BaseWalkSpeed;
+        UE_LOG(LogTemp, Warning, TEXT("Setting Walk Speed in begin play %f"), Character->GetCharacterMovement()->MaxWalkSpeed);
+    }
 }

@@ -66,6 +66,10 @@ AOpenShooterCharacter::AOpenShooterCharacter()
     GetCharacterMovement()->GetNavAgentPropertiesRef().bCanCrouch = true;
     GetCharacterMovement()->SetCrouchedHalfHeight(60.0f);
     GetCharacterMovement()->MaxWalkSpeedCrouched = 200.0f;
+
+    // Avoid blocking the camera with other characters capsule
+    GetCapsuleComponent()->SetCollisionResponseToChannel(ECollisionChannel::ECC_Camera, ECollisionResponse::ECR_Ignore);
+    GetMesh()->SetCollisionResponseToChannel(ECollisionChannel::ECC_Camera, ECollisionResponse::ECR_Ignore);
 }
 
 void AOpenShooterCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
@@ -241,15 +245,18 @@ void AOpenShooterCharacter::CrouchPressed()
     }
 }
 
+// ReSharper disable once CppMemberFunctionMayBeConst
 void AOpenShooterCharacter::AimButtonPressed()
 {
     if (Combat)
-        Combat->bAiming = true;
+        Combat->SetAiming(true);
 }
+
+// ReSharper disable once CppMemberFunctionMayBeConst
 void AOpenShooterCharacter::AimButtonReleased()
 {
     if (Combat)
-        Combat->bAiming = false;
+        Combat->SetAiming(false);
 }
 
 void AOpenShooterCharacter::ServerEquipPressed_Implementation()

@@ -44,7 +44,7 @@ protected:
 
     // We need this to show strafing/leaning animations on all the clients
     UFUNCTION()
-    void OnRep_EquippedWeapon();
+    void OnRep_EquippedWeapon() const;
 
 private:
     AOpenShooterCharacter* Character;
@@ -54,6 +54,12 @@ private:
 
     UPROPERTY(Replicated)
     bool bAiming;
+
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Movement", meta = (AllowPrivateAccess = "true"))
+    float BaseWalkSpeed;
+
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Movement", meta = (AllowPrivateAccess = "true"))
+    float AimWalkSpeed;
 
 public:
 };
