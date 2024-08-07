@@ -38,9 +38,7 @@ void UOpenShooterAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
     // Offset Yaw for strafing
     const FRotator AimRotation = OpenShooterCharacter->GetBaseAimRotation();
     const FRotator MovementRotation = UKismetMathLibrary::MakeRotFromX(OpenShooterCharacter->GetVelocity());
-    const FRotator DeltaRotation = UKismetMathLibrary::NormalizedDeltaRotator(AimRotation, MovementRotation);
-    // In the corner case of fast movement between -180 and 180 degrees, we need to adjust the value by interpolating
-    InterpolatedDeltaRotation = UKismetMathLibrary::RInterpTo(DeltaRotation, DeltaRotation, DeltaSeconds, 6.0f);
+    YawOffset = UKismetMathLibrary::NormalizedDeltaRotator(MovementRotation, AimRotation).Yaw;
 
     // Lean
     CharacterRotationLastFrame = CharacterRotation;
