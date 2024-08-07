@@ -68,7 +68,6 @@ void UCombatComponent::SetAiming(const bool bIsAiming)
     if (Character)
     {
         Character->GetCharacterMovement()->MaxWalkSpeed = bIsAiming ? AimWalkSpeed : BaseWalkSpeed;
-        UE_LOG(LogTemp, Warning, TEXT("Setting Walk Speed %f"), Character->GetCharacterMovement()->MaxWalkSpeed);
     }
 }
 
@@ -101,6 +100,5 @@ void UCombatComponent::BeginPlay()
     if (Character)
     {
         Character->GetCharacterMovement()->MaxWalkSpeed = BaseWalkSpeed;
-        UE_LOG(LogTemp, Warning, TEXT("Setting Walk Speed in begin play %f"), Character->GetCharacterMovement()->MaxWalkSpeed);
     }
 }

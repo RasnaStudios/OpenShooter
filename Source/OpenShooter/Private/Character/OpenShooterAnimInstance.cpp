@@ -47,4 +47,8 @@ void UOpenShooterAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
     const float Target = Delta.Yaw / DeltaSeconds;
     const float Interp = FMath::FInterpTo(Lean, Target, DeltaSeconds, 6.0f);
     Lean = FMath::Clamp(Interp, -90.0f, 90.0f);    // if we mouse quickly, we don't want the lean to be too much
+
+    // Aim Offsets
+    AimOffset_Yaw = OpenShooterCharacter->GetAimOffsetYaw();
+    AimOffset_Pitch = OpenShooterCharacter->GetAimOffsetPitch();
 }
