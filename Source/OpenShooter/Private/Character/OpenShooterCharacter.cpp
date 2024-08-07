@@ -13,6 +13,7 @@
 #include "GameFramework/Controller.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "InputActionValue.h"
+#include "Kismet/KismetMathLibrary.h"
 #include "Net/UnrealNetwork.h"
 #include "Weapon/Weapon.h"
 
@@ -37,7 +38,7 @@ AOpenShooterCharacter::AOpenShooterCharacter()
 
     // Create a camera boom (pulls in towards the player if there is a collision)
     CameraBoom = CreateDefaultSubobject<USpringArmComponent>(TEXT("CameraBoom"));
-    CameraBoom->SetupAttachment(GetRootComponent());
+    CameraBoom->SetupAttachment(GetMesh());
     CameraBoom->TargetArmLength = 600.0f;          // The camera follows at this distance behind the character
     CameraBoom->bUsePawnControlRotation = true;    // Rotate the arm based on the controller
 
@@ -61,6 +62,15 @@ AOpenShooterCharacter::AOpenShooterCharacter()
     Combat->SetIsReplicated(true);    // This is enough to replicate the component
     // We want the combat component to replicate because it has replicated variables.
     // The component itself needs to be replicated for it to have replicated variables.
+
+    // Enable crouching
+    GetCharacterMovement()->GetNavAgentPropertiesRef().bCanCrouch = true;
+    GetCharacterMovement()->SetCrouchedHalfHeight(60.0f);
+    GetCharacterMovement()->MaxWalkSpeedCrouched = 200.0f;
+
+    // Avoid blocking the camera with other characters capsule
+    GetCapsuleComponent()->SetCollisionResponseToChannel(ECollisionChannel::ECC_Camera, ECollisionResponse::ECR_Ignore);
+    GetMesh()->SetCollisionResponseToChannel(ECollisionChannel::ECC_Camera, ECollisionResponse::ECR_Ignore);
 }
 
 void AOpenShooterCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
@@ -85,6 +95,14 @@ void AOpenShooterCharacter::PostInitializeComponents()
     {
         Combat->Character = this;
     }
+}
+
+void AOpenShooterCharacter::Tick(float DeltaSeconds)
+{
+    Super::Tick(DeltaSeconds);
+
+    // Setting the aim offset
+    AimOffset(DeltaSeconds);
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -117,6 +135,13 @@ void AOpenShooterCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInp
 
         // Equip Weapon
         EnhancedInputComponent->BindAction(EquipAction, ETriggerEvent::Triggered, this, &AOpenShooterCharacter::EquipPressed);
+
+        // Crouch
+        EnhancedInputComponent->BindAction(CrouchAction, ETriggerEvent::Triggered, this, &AOpenShooterCharacter::CrouchPressed);
+
+        // Aim
+        EnhancedInputComponent->BindAction(AimAction, ETriggerEvent::Started, this, &AOpenShooterCharacter::AimButtonPressed);
+        EnhancedInputComponent->BindAction(AimAction, ETriggerEvent::Completed, this, &AOpenShooterCharacter::AimButtonReleased);
     }
     else
     {
@@ -158,8 +183,13 @@ void AOpenShooterCharacter::SetOverlappingWeapon(AWeapon* Weapon)
 bool AOpenShooterCharacter::IsWeaponEquipped() const
 {
     // Check if the character has a weapon equipped
-    // This works only if EquipWeapon is replicated
+    // This works only if EquippedWeapon is replicated
     return Combat && Combat->EquippedWeapon;
+}
+
+bool AOpenShooterCharacter::IsAiming() const
+{
+    return Combat && Combat->bAiming;
 }
 
 void AOpenShooterCharacter::Move(const FInputActionValue& Value)
@@ -208,6 +238,71 @@ void AOpenShooterCharacter::EquipPressed()
         // If it's the client, run RPC
         else
             ServerEquipPressed();
+    }
+}
+
+void AOpenShooterCharacter::CrouchPressed()
+{
+    if (bIsCrouched)
+    {
+        UnCrouch();
+    }
+    else
+    {
+        Crouch();
+    }
+}
+
+// ReSharper disable once CppMemberFunctionMayBeConst
+void AOpenShooterCharacter::AimButtonPressed()
+{
+    if (Combat)
+        Combat->SetAiming(true);
+}
+
+// ReSharper disable once CppMemberFunctionMayBeConst
+void AOpenShooterCharacter::AimButtonReleased()
+{
+    if (Combat)
+        Combat->SetAiming(false);
+}
+
+void AOpenShooterCharacter::AimOffset(float DeltaSeconds)
+{
+    if (Combat && Combat->EquippedWeapon == nullptr)
+        return;
+    FVector Velocity = GetVelocity();
+    Velocity.Z = 0;    // We only want the horizontal velocity
+    const float Speed = Velocity.Size();
+    const bool bIsInAir = GetCharacterMovement()->IsFalling();
+
+    if (Speed == 0 || !bIsInAir)    // standing still, not jumping
+    {
+        const FRotator CurrentAimRotation = FRotator(0, GetBaseAimRotation().Yaw, 0);
+        const FRotator DeltaRotation =
+            UKismetMathLibrary::NormalizedDeltaRotator(CurrentAimRotation, StartingAimRotation);    // the order were is important
+        // if we change the order, the sign of the finale yaw will be opposite
+        AimOffset_Yaw = DeltaRotation.Yaw;
+        bUseControllerRotationYaw = false;    // we don't want the controller to rotate the camera
+    }
+    // If we are moving or in the air,
+    if (Speed > 0.f || bIsInAir)
+    {
+        StartingAimRotation = FRotator(0, GetBaseAimRotation().Yaw, 0);
+        AimOffset_Yaw = 0.f;                 // when moving or in the air, we don't want the aim offset to be applied
+        bUseControllerRotationYaw = true;    // we want the controller to rotate the camera
+    }
+
+    AimOffset_Pitch = GetBaseAimRotation().Pitch;
+    // If the character is not locally controlled, the pitch and yaw values are packaged together by the CharacterMovememntComponent
+    // Therefore the pitch ends up being not in [-90, 90] range. We need to adjust it only if the character is not locally
+    // controlled
+    if (!IsLocallyControlled() && AimOffset_Pitch > 90.f)
+    {
+        // we re-map the pitch from [270, 360) to [-90, 0)
+        const FVector2D InRange(270.f, 360.f);
+        const FVector2D OutRange(-90.f, 0.f);
+        AimOffset_Pitch = FMath::GetMappedRangeValueClamped(InRange, OutRange, AimOffset_Pitch);
     }
 }
 

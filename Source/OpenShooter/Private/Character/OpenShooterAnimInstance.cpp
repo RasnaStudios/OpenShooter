@@ -4,6 +4,7 @@
 
 #include "Character/OpenShooterCharacter.h"
 #include "GameFramework/CharacterMovementComponent.h"
+#include "Kismet/KismetMathLibrary.h"
 
 void UOpenShooterAnimInstance::NativeInitializeAnimation()
 {
@@ -31,4 +32,23 @@ void UOpenShooterAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
     bIsInAir = OpenShooterCharacter->GetCharacterMovement()->IsFalling();
     bIsAccelerating = OpenShooterCharacter->GetCharacterMovement()->GetCurrentAcceleration().Size() > 0;
     bWeaponEquipped = OpenShooterCharacter->IsWeaponEquipped();
+    bIsCrouched = OpenShooterCharacter->bIsCrouched;
+    bIsAiming = OpenShooterCharacter->IsAiming();
+
+    // Offset Yaw for strafing
+    const FRotator AimRotation = OpenShooterCharacter->GetBaseAimRotation();
+    const FRotator MovementRotation = UKismetMathLibrary::MakeRotFromX(OpenShooterCharacter->GetVelocity());
+    YawOffset = UKismetMathLibrary::NormalizedDeltaRotator(MovementRotation, AimRotation).Yaw;
+
+    // Lean
+    CharacterRotationLastFrame = CharacterRotation;
+    CharacterRotation = OpenShooterCharacter->GetActorRotation();
+    const FRotator Delta = UKismetMathLibrary::NormalizedDeltaRotator(CharacterRotation, CharacterRotationLastFrame);
+    const float Target = Delta.Yaw / DeltaSeconds;
+    const float Interp = FMath::FInterpTo(Lean, Target, DeltaSeconds, 6.0f);
+    Lean = FMath::Clamp(Interp, -90.0f, 90.0f);    // if we mouse quickly, we don't want the lean to be too much
+
+    // Aim Offsets
+    AimOffset_Yaw = OpenShooterCharacter->GetAimOffsetYaw();
+    AimOffset_Pitch = OpenShooterCharacter->GetAimOffsetPitch();
 }

@@ -32,9 +32,34 @@ protected:
     // Called when the game starts
     virtual void BeginPlay() override;
 
+    // Set Aim
+    void SetAiming(bool bIsAiming);
+
+    // We need this RPC from the client to tell the server to set the aiming state
+    // This is because the aiming state is handled on the client that pressed the button
+    // and then replicated from the client to the server, and then from the server to all the clients
+    // so that the aiming state is consistent across all clients and the animations are in sync
+    UFUNCTION(Server, Reliable)
+    void ServerSetAiming(bool bIsAiming);
+
+    // We need this to show strafing/leaning animations on all the clients
+    UFUNCTION()
+    void OnRep_EquippedWeapon() const;
+
 private:
     AOpenShooterCharacter* Character;
 
-    UPROPERTY(Replicated)
+    UPROPERTY(ReplicatedUsing = OnRep_EquippedWeapon)
     AWeapon* EquippedWeapon;
+
+    UPROPERTY(Replicated)
+    bool bAiming;
+
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Movement", meta = (AllowPrivateAccess = "true"))
+    float BaseWalkSpeed;
+
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Movement", meta = (AllowPrivateAccess = "true"))
+    float AimWalkSpeed;
+
+public:
 };

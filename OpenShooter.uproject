@@ -26,5 +26,8 @@
 			"Name": "AdvancedRenamer",
 			"Enabled": true
 		}
+	],
+	"TargetPlatforms": [
+		"Mac"
 	]
 }
