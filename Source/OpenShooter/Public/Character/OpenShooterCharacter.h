@@ -100,6 +100,8 @@ protected:
     /** Called for looking input */
     void Look(const FInputActionValue& Value);
 
+    virtual void Jump() override;
+
     // Called when the Equip action is pressed
     void EquipPressed();
 
