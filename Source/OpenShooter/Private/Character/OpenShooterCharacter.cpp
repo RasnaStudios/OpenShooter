@@ -67,6 +67,7 @@ AOpenShooterCharacter::AOpenShooterCharacter()
     GetCharacterMovement()->GetNavAgentPropertiesRef().bCanCrouch = true;
     GetCharacterMovement()->SetCrouchedHalfHeight(60.0f);
     GetCharacterMovement()->MaxWalkSpeedCrouched = 200.0f;
+    GetCharacterMovement()->RotationRate = FRotator(0.0f, 850.0f, 0.0f);
 
     // Avoid blocking the camera with other characters capsule
     GetCapsuleComponent()->SetCollisionResponseToChannel(ECollisionChannel::ECC_Camera, ECollisionResponse::ECR_Ignore);
@@ -131,7 +132,7 @@ void AOpenShooterCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInp
     if (UEnhancedInputComponent* EnhancedInputComponent = Cast<UEnhancedInputComponent>(PlayerInputComponent))
     {
         // Jumping
-        EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Started, this, &ACharacter::Jump);
+        EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Started, this, &AOpenShooterCharacter::Jump);
         EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Completed, this, &ACharacter::StopJumping);
 
         // Moving
@@ -232,6 +233,18 @@ void AOpenShooterCharacter::Look(const FInputActionValue& Value)
         // add yaw and pitch input to controller
         AddControllerYawInput(LookAxisVector.X);
         AddControllerPitchInput(LookAxisVector.Y);
+    }
+}
+
+void AOpenShooterCharacter::Jump()
+{
+    if (!bIsCrouched)
+    {
+        UnCrouch();
+    }
+    else
+    {
+        Super::Jump();
     }
 }
 
