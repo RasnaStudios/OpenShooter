@@ -286,8 +286,13 @@ void AOpenShooterCharacter::AimOffset(float DeltaSeconds)
             UKismetMathLibrary::NormalizedDeltaRotator(CurrentAimRotation, StartingAimRotation);    // the order were is important
         // if we change the order, the sign of the finale yaw will be opposite
         AimOffset_Yaw = DeltaRotation.Yaw;
-        bUseControllerRotationYaw = false;    // we don't want the controller to rotate the camera
-        TurnInPlace(DeltaSeconds);            // This allows to use the updated Yaw
+        bUseControllerRotationYaw = true;    // we want the controller to rotate the camera when standing still
+        TurnInPlace(DeltaSeconds);           // This allows to use the updated Yaw
+
+        // If we are not turning in place, we want to just use AimOffset_Yaw, otherwise we want to interpolate it to 0 (done in
+        // TurnInPlace)
+        if (TurningInPlace == ETurningInPlace::ETIP_NotTurning)
+            InterpolatedAimOffsetYaw = AimOffset_Yaw;
     }
     // If we are moving or in the air,
     if (Speed > 0.f || bIsInAir)
@@ -326,6 +331,18 @@ void AOpenShooterCharacter::TurnInPlace(float DeltaSeconds)
     {
         // Not turning
         TurningInPlace = ETurningInPlace::ETIP_NotTurning;
+    }
+    if (TurningInPlace != ETurningInPlace::ETIP_NotTurning)
+    {
+        // Interpolate the AimOffset_Yaw to 0
+        InterpolatedAimOffsetYaw = FMath::FInterpTo(InterpolatedAimOffsetYaw, 0.f, DeltaSeconds, 4.f);
+        AimOffset_Yaw = InterpolatedAimOffsetYaw;
+        // Then we check if we have turned enough and in that case we reset the TurningInPlace and the StartingAimRotation
+        if (FMath::Abs(AimOffset_Yaw) < 10.f)
+        {
+            TurningInPlace = ETurningInPlace::ETIP_NotTurning;
+            StartingAimRotation = FRotator(0, GetBaseAimRotation().Yaw, 0);
+        }
     }
 }
 
