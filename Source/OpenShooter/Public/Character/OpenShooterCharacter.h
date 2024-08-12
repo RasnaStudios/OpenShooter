@@ -122,6 +122,7 @@ private:
 
     ETurningInPlace TurningInPlace;
     void TurnInPlace(float DeltaSeconds);
+    float InterpolatedAimOffsetYaw;    // To interpolate the aim offset yaw to 0 when turning in place
 
 public:
     /** Returns CameraBoom subobject **/
