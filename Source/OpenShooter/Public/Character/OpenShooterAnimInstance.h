@@ -36,6 +36,9 @@ private:
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Equipment", meta = (AllowPrivateAccess = "true"))
     bool bWeaponEquipped;
 
+    UPROPERTY()
+    class AWeapon* EquippedWeapon;
+
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Equipment", meta = (AllowPrivateAccess = "true"))
     bool bIsCrouched;
 
@@ -58,4 +61,8 @@ private:
 
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Movement", meta = (AllowPrivateAccess = "true"))
     float AimOffset_Pitch;
+
+    // Set the left hand on the weapon
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Equipment", meta = (AllowPrivateAccess = "true"))
+    FTransform LeftHandTransform;
 };
