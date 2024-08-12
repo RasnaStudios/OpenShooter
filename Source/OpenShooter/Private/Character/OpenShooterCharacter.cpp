@@ -311,3 +311,10 @@ void AOpenShooterCharacter::ServerEquipPressed_Implementation()
     if (Combat)
         Combat->EquipWeapon(OverlappingWeapon);
 }
+
+AWeapon* AOpenShooterCharacter::GetEquippedWeapon() const
+{
+    if (Combat == nullptr)
+        return nullptr;
+    return Combat->EquippedWeapon;
+}

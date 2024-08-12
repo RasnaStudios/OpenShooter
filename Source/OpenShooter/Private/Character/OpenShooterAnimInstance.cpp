@@ -5,6 +5,7 @@
 #include "Character/OpenShooterCharacter.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Kismet/KismetMathLibrary.h"
+#include "Weapon/Weapon.h"
 
 void UOpenShooterAnimInstance::NativeInitializeAnimation()
 {
@@ -31,9 +32,11 @@ void UOpenShooterAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 
     bIsInAir = OpenShooterCharacter->GetCharacterMovement()->IsFalling();
     bIsAccelerating = OpenShooterCharacter->GetCharacterMovement()->GetCurrentAcceleration().Size() > 0;
-    bWeaponEquipped = OpenShooterCharacter->IsWeaponEquipped();
     bIsCrouched = OpenShooterCharacter->bIsCrouched;
     bIsAiming = OpenShooterCharacter->IsAiming();
+
+    EquippedWeapon = OpenShooterCharacter->GetEquippedWeapon();
+    bWeaponEquipped = OpenShooterCharacter->IsWeaponEquipped();
 
     // Offset Yaw for strafing
     const FRotator AimRotation = OpenShooterCharacter->GetBaseAimRotation();
@@ -51,4 +54,19 @@ void UOpenShooterAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
     // Aim Offsets
     AimOffset_Yaw = OpenShooterCharacter->GetAimOffsetYaw();
     AimOffset_Pitch = OpenShooterCharacter->GetAimOffsetPitch();
+
+    if (bWeaponEquipped && EquippedWeapon && EquippedWeapon->GetMesh() && OpenShooterCharacter->GetMesh())
+    {
+        LeftHandTransform =
+            EquippedWeapon->GetMesh()->GetSocketTransform(FName("LeftHandSocket"), ERelativeTransformSpace::RTS_World);
+        // We want the socket location to be relative to the right hand. This is because the weapon should not be asjusted or moved
+        // relative to the right hand at runtime. The right hand is our reference in the bone space
+        FVector LeftHandTargetLocation;
+        FRotator LeftHandTargetRotation;
+        OpenShooterCharacter->GetMesh()->TransformToBoneSpace(FName("hand_r"), LeftHandTransform.GetLocation(),
+            FRotator::ZeroRotator, LeftHandTargetLocation, LeftHandTargetRotation);
+        // Now we set the location and the rotation of the left hand to the target transform
+        LeftHandTransform.SetLocation(LeftHandTargetLocation);
+        LeftHandTransform.SetRotation(LeftHandTargetRotation.Quaternion());
+    }
 }

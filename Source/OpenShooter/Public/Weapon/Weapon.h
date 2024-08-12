@@ -68,4 +68,5 @@ private:
 
 public:
     FORCEINLINE USphereComponent* GetAreaSphere() const { return AreaSphere; }
+    FORCEINLINE UMeshComponent* GetMesh() const { return WeaponMesh; }
 };
