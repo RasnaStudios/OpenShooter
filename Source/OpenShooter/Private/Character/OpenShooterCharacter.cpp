@@ -74,6 +74,10 @@ AOpenShooterCharacter::AOpenShooterCharacter()
 
     // Set character to not rotate in place initially
     TurningInPlace = ETurningInPlace::ETIP_NotTurning;
+
+    // Set net update frequency
+    NetUpdateFrequency = 66.0f;
+    MinNetUpdateFrequency = 33.0f;
 }
 
 void AOpenShooterCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
