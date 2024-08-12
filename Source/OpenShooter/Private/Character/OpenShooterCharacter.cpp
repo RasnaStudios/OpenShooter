@@ -238,14 +238,11 @@ void AOpenShooterCharacter::Look(const FInputActionValue& Value)
 
 void AOpenShooterCharacter::Jump()
 {
-    if (!bIsCrouched)
+    if (bIsCrouched)
     {
         UnCrouch();
     }
-    else
-    {
-        Super::Jump();
-    }
+    Super::Jump();
 }
 
 void AOpenShooterCharacter::EquipPressed()
