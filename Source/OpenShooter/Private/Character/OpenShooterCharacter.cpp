@@ -71,6 +71,9 @@ AOpenShooterCharacter::AOpenShooterCharacter()
     // Avoid blocking the camera with other characters capsule
     GetCapsuleComponent()->SetCollisionResponseToChannel(ECollisionChannel::ECC_Camera, ECollisionResponse::ECR_Ignore);
     GetMesh()->SetCollisionResponseToChannel(ECollisionChannel::ECC_Camera, ECollisionResponse::ECR_Ignore);
+
+    // Set character to not rotate in place initially
+    TurningInPlace = ETurningInPlace::ETIP_NotTurning;
 }
 
 void AOpenShooterCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
@@ -284,6 +287,7 @@ void AOpenShooterCharacter::AimOffset(float DeltaSeconds)
         // if we change the order, the sign of the finale yaw will be opposite
         AimOffset_Yaw = DeltaRotation.Yaw;
         bUseControllerRotationYaw = false;    // we don't want the controller to rotate the camera
+        TurnInPlace(DeltaSeconds);            // This allows to use the updated Yaw
     }
     // If we are moving or in the air,
     if (Speed > 0.f || bIsInAir)
@@ -303,6 +307,25 @@ void AOpenShooterCharacter::AimOffset(float DeltaSeconds)
         const FVector2D InRange(270.f, 360.f);
         const FVector2D OutRange(-90.f, 0.f);
         AimOffset_Pitch = FMath::GetMappedRangeValueClamped(InRange, OutRange, AimOffset_Pitch);
+    }
+}
+
+void AOpenShooterCharacter::TurnInPlace(float DeltaSeconds)
+{
+    if (AimOffset_Yaw > 90.f)
+    {
+        // Turn right
+        TurningInPlace = ETurningInPlace::ETIP_Right;
+    }
+    else if (AimOffset_Yaw < -90.f)
+    {
+        // Turn left
+        TurningInPlace = ETurningInPlace::ETIP_Left;
+    }
+    else
+    {
+        // Not turning
+        TurningInPlace = ETurningInPlace::ETIP_NotTurning;
     }
 }
 

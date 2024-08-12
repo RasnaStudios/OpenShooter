@@ -4,6 +4,7 @@
 
 #include "Animation/AnimInstance.h"
 #include "CoreMinimal.h"
+#include "Types/TurningInPlace.h"
 
 #include "OpenShooterAnimInstance.generated.h"
 
@@ -65,4 +66,7 @@ private:
     // Set the left hand on the weapon
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Equipment", meta = (AllowPrivateAccess = "true"))
     FTransform LeftHandTransform;
+
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Movement", meta = (AllowPrivateAccess = "true"))
+    ETurningInPlace TurningInPlace;
 };
