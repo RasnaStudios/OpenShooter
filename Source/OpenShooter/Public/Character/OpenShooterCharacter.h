@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
 #include "Logging/LogMacros.h"
+#include "Types/TurningInPlace.h"
 
 #include "OpenShooterCharacter.generated.h"
 
@@ -119,6 +120,9 @@ private:
     float AimOffset_Pitch;
     FRotator StartingAimRotation;
 
+    ETurningInPlace TurningInPlace;
+    void TurnInPlace(float DeltaSeconds);
+
 public:
     /** Returns CameraBoom subobject **/
     FORCEINLINE USpringArmComponent* GetCameraBoom() const { return CameraBoom; }
@@ -126,6 +130,7 @@ public:
     FORCEINLINE UCameraComponent* GetFollowCamera() const { return FollowCamera; }
     FORCEINLINE float GetAimOffsetYaw() const { return AimOffset_Yaw; }
     FORCEINLINE float GetAimOffsetPitch() const { return AimOffset_Pitch; }
+    FORCEINLINE ETurningInPlace GetTurningInPlace() const { return TurningInPlace; }
 
     AWeapon* GetEquippedWeapon() const;
 };
