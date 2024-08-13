@@ -92,13 +92,18 @@ void UCombatComponent::OnRep_EquippedWeapon() const
     }
 }
 
+void UCombatComponent::Fire(const bool ButtonPressed)
+{
+    bButtonPressed = ButtonPressed;
+    if (Character && bButtonPressed)
+        Character->PlayFireMontage(bAiming);
+}
+
 // Called when the game starts
 void UCombatComponent::BeginPlay()
 {
     Super::BeginPlay();
 
     if (Character)
-    {
         Character->GetCharacterMovement()->MaxWalkSpeed = BaseWalkSpeed;
-    }
 }

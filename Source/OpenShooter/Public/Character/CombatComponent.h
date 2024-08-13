@@ -46,6 +46,8 @@ protected:
     UFUNCTION()
     void OnRep_EquippedWeapon() const;
 
+    void Fire(bool ButtonPressed);
+
 private:
     AOpenShooterCharacter* Character;
 
@@ -60,6 +62,8 @@ private:
 
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Movement", meta = (AllowPrivateAccess = "true"))
     float AimWalkSpeed;
+
+    bool bButtonPressed;
 
 public:
 };
