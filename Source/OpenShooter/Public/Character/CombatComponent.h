@@ -46,7 +46,16 @@ protected:
     UFUNCTION()
     void OnRep_EquippedWeapon() const;
 
-    void Fire(bool ButtonPressed);
+    void Fire(bool bButtonPressed);
+
+    // This is necessary to replicate the sounds and visuals of the weapon firing
+    UFUNCTION(Server, Reliable)
+    void ServerFire();
+
+    UFUNCTION(NetMulticast, Reliable)
+    void MulticastFire();
+
+    void TraceUnderCrosshair(FHitResult& HitResult) const;
 
 private:
     AOpenShooterCharacter* Character;
@@ -63,7 +72,6 @@ private:
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Movement", meta = (AllowPrivateAccess = "true"))
     float AimWalkSpeed;
 
-    bool bButtonPressed;
-
-public:
+    bool bFireButtonPressed;    // we don't replicate this because we could have automatic weapons, so it would be hard
+                                // to replicate the changes in the button press state. We use instead multicast RPCs
 };
