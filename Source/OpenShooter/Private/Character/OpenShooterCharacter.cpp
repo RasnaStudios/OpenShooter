@@ -24,6 +24,8 @@ DEFINE_LOG_CATEGORY(LogTemplateCharacter);
 
 AOpenShooterCharacter::AOpenShooterCharacter()
 {
+    PrimaryActorTick.bCanEverTick = true;    // we need this for combat component to tick
+
     // Set size for collision capsule
     GetCapsuleComponent()->InitCapsuleSize(42.f, 96.0f);
 

@@ -4,12 +4,15 @@
 
 #include "Character/OpenShooterCharacter.h"
 #include "GameFramework/CharacterMovementComponent.h"
+#include "Kismet/GameplayStatics.h"
 #include "Net/UnrealNetwork.h"
 #include "Weapon/Weapon.h"
 
+#define TRACE_LENGTH 80000.f;
+
 UCombatComponent::UCombatComponent()
 {
-    PrimaryComponentTick.bCanEverTick = false;
+    PrimaryComponentTick.bCanEverTick = true;    // We want to tick this component every frame for the firing logic
 
     BaseWalkSpeed = 600.0f;
     AimWalkSpeed = 400.0f;
@@ -23,9 +26,20 @@ void UCombatComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Out
     DOREPLIFETIME(UCombatComponent, bAiming);
 }
 
+void UCombatComponent::BeginPlay()
+{
+    Super::BeginPlay();
+
+    if (Character)
+        Character->GetCharacterMovement()->MaxWalkSpeed = BaseWalkSpeed;
+}
+
 void UCombatComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
     Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
+    FHitResult HitResult;
+    UE_LOG(LogTemp, Warning, TEXT("TickComponent"));
+    TraceUnderCrosshair(HitResult);
 }
 
 void UCombatComponent::EquipWeapon(AWeapon* Weapon)
@@ -90,23 +104,65 @@ void UCombatComponent::OnRep_EquippedWeapon() const
     }
 }
 
-void UCombatComponent::Fire(const bool ButtonPressed)
+void UCombatComponent::Fire(const bool bButtonPressed)
 {
-    bButtonPressed = ButtonPressed;
+    bFireButtonPressed = bButtonPressed;
+    if (bFireButtonPressed)
+    {
+        // If we replace ServerFire with MulticastFire directly here, it will work only server and not on clients.
+        // The reason is that clients do not have authority to call multicast functions directly; only the server can do that.
+        ServerFire();
+    }
+}
+
+void UCombatComponent::ServerFire_Implementation()
+{
+    MulticastFire();
+}
+
+void UCombatComponent::MulticastFire_Implementation()
+{
     if (EquippedWeapon == nullptr)
         return;
-    if (Character && bButtonPressed)
+    if (Character)
     {
         Character->PlayFireMontage(bAiming);
         EquippedWeapon->Fire();
     }
 }
 
-// Called when the game starts
-void UCombatComponent::BeginPlay()
+void UCombatComponent::TraceUnderCrosshair(FHitResult& HitResult) const
 {
-    Super::BeginPlay();
+    // We trace from the center of the screen (crosshair)
+    FVector2D ViewportSize;
+    if (GEngine && GEngine->GameViewport)
+    {
+        GEngine->GameViewport->GetViewportSize(ViewportSize);
+    }
+    // Crosshair is the center of the viewport
+    const FVector2D CrosshairLocation(ViewportSize.X / 2, ViewportSize.Y / 2);
+    FVector CrosshairWorldPosition;
+    FVector CrosshairWorldDirection;
+    bool bScreenToWorld = UGameplayStatics::DeprojectScreenToWorld(
+        UGameplayStatics::GetPlayerController(this, 0), CrosshairLocation, CrosshairWorldPosition, CrosshairWorldDirection);
+    if (bScreenToWorld)
+    {
+        const FVector Start = CrosshairWorldPosition;
+        const FVector End = CrosshairWorldPosition + CrosshairWorldDirection * TRACE_LENGTH;
 
-    if (Character)
-        Character->GetCharacterMovement()->MaxWalkSpeed = BaseWalkSpeed;
+        FCollisionQueryParams QueryParams;
+        QueryParams.AddIgnoredActor(Character);
+        QueryParams.AddIgnoredActor(EquippedWeapon);
+        GetWorld()->LineTraceSingleByChannel(HitResult, Start, End, ECollisionChannel::ECC_Visibility, QueryParams);
+
+        // If we didn't hit anything, we set the impact point to the end of the trace
+        if (!HitResult.bBlockingHit)
+        {
+            HitResult.ImpactPoint = End;
+        }
+        else
+        {
+            DrawDebugSphere(GetWorld(), HitResult.ImpactPoint, 10.f, 12, FColor::Red);
+        }
+    }
 }
