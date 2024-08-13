@@ -148,8 +148,11 @@ void AOpenShooterCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInp
         EnhancedInputComponent->BindAction(CrouchAction, ETriggerEvent::Triggered, this, &AOpenShooterCharacter::CrouchPressed);
 
         // Aim
-        EnhancedInputComponent->BindAction(AimAction, ETriggerEvent::Started, this, &AOpenShooterCharacter::AimButtonPressed);
-        EnhancedInputComponent->BindAction(AimAction, ETriggerEvent::Completed, this, &AOpenShooterCharacter::AimButtonReleased);
+        EnhancedInputComponent->BindAction(AimAction, ETriggerEvent::Started, this, &AOpenShooterCharacter::AimPressed);
+        EnhancedInputComponent->BindAction(AimAction, ETriggerEvent::Completed, this, &AOpenShooterCharacter::AimReleased);
+
+        // Fire
+        EnhancedInputComponent->BindAction(FireAction, ETriggerEvent::Started, this, &AOpenShooterCharacter::FirePressed);
     }
     else
     {
@@ -200,6 +203,20 @@ bool AOpenShooterCharacter::IsAiming() const
     return Combat && Combat->bAiming;
 }
 
+void AOpenShooterCharacter::PlayFireMontage(const bool bAiming) const
+{
+    if (Combat == nullptr || Combat->EquippedWeapon == nullptr)
+        return;
+
+    UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
+    if (AnimInstance && FireWeaponMontage)
+    {
+        AnimInstance->Montage_Play(FireWeaponMontage, 1.0f);
+        const FName Section = bAiming ? FName("RifleAim") : FName("RifleHip");
+        AnimInstance->Montage_JumpToSection(Section, FireWeaponMontage);
+    }
+}
+
 void AOpenShooterCharacter::Move(const FInputActionValue& Value)
 {
     // input is a Vector2D
@@ -239,9 +256,7 @@ void AOpenShooterCharacter::Look(const FInputActionValue& Value)
 void AOpenShooterCharacter::Jump()
 {
     if (bIsCrouched)
-    {
         UnCrouch();
-    }
     Super::Jump();
 }
 
@@ -261,24 +276,20 @@ void AOpenShooterCharacter::EquipPressed()
 void AOpenShooterCharacter::CrouchPressed()
 {
     if (bIsCrouched)
-    {
         UnCrouch();
-    }
     else
-    {
         Crouch();
-    }
 }
 
 // ReSharper disable once CppMemberFunctionMayBeConst
-void AOpenShooterCharacter::AimButtonPressed()
+void AOpenShooterCharacter::AimPressed()
 {
-    if (Combat)
+    if (Combat && Combat->EquippedWeapon)
         Combat->SetAiming(true);
 }
 
 // ReSharper disable once CppMemberFunctionMayBeConst
-void AOpenShooterCharacter::AimButtonReleased()
+void AOpenShooterCharacter::AimReleased()
 {
     if (Combat)
         Combat->SetAiming(false);
@@ -328,7 +339,6 @@ void AOpenShooterCharacter::AimOffset(float DeltaSeconds)
         AimOffset_Pitch = FMath::GetMappedRangeValueClamped(InRange, OutRange, AimOffset_Pitch);
     }
 }
-
 void AOpenShooterCharacter::TurnInPlace(float DeltaSeconds)
 {
     if (AimOffset_Yaw > 90.f)
@@ -371,4 +381,17 @@ AWeapon* AOpenShooterCharacter::GetEquippedWeapon() const
     if (Combat == nullptr)
         return nullptr;
     return Combat->EquippedWeapon;
+}
+
+// ReSharper disable once CppMemberFunctionMayBeConst
+void AOpenShooterCharacter::FirePressed()
+{
+    if (Combat)
+        Combat->Fire(true);
+}
+// ReSharper disable once CppMemberFunctionMayBeConst
+void AOpenShooterCharacter::FireReleased()
+{
+    if (Combat)
+        Combat->Fire(false);
 }

@@ -35,6 +35,8 @@ public:
 
     bool IsAiming() const;
 
+    void PlayFireMontage(bool bAiming) const;
+
 private:
     /** Camera boom positioning the camera behind the character */
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components|Camera", meta = (AllowPrivateAccess = "true"))
@@ -71,6 +73,10 @@ private:
     /** Aim Input Action */
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input", meta = (AllowPrivateAccess = "true"))
     UInputAction* AimAction;
+
+    /** Fire Input Action */
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input", meta = (AllowPrivateAccess = "true"))
+    UInputAction* FireAction;
 
     // The widget component that will be displayed above the character
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Components|HUD", meta = (AllowPrivateAccess = "true"))
@@ -112,10 +118,14 @@ protected:
     UFUNCTION(Server, Reliable)
     void ServerEquipPressed();
 
-    void AimButtonPressed();
-    void AimButtonReleased();
-
+    // Aiming
+    void AimPressed();
+    void AimReleased();
     void AimOffset(float DeltaSeconds);
+
+    // Fire
+    void FirePressed();
+    void FireReleased();
 
 private:
     float AimOffset_Yaw;
@@ -125,6 +135,9 @@ private:
     ETurningInPlace TurningInPlace;
     void TurnInPlace(float DeltaSeconds);
     float InterpolatedAimOffsetYaw;    // To interpolate the aim offset yaw to 0 when turning in place
+
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Combat", meta = (AllowPrivateAccess = "true"))
+    UAnimMontage* FireWeaponMontage;
 
 public:
     /** Returns CameraBoom subobject **/
