@@ -85,6 +85,12 @@ void AWeapon::OnSphereEndOverlap(
         Character->SetOverlappingWeapon(nullptr);
 }
 
+void AWeapon::Fire() const
+{
+    if (FireAnimation)
+        WeaponMesh->PlayAnimation(FireAnimation, false);
+}
+
 // This function runs on the server does everything that needs to be done when the weapon state change, on the server.
 // The client will receive the state change and will run the OnRep_WeaponState function to update the client state. (e.g. hide the
 // pickup widget)
