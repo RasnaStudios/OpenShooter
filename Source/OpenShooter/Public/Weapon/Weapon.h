@@ -54,6 +54,14 @@ private:
     UPROPERTY(VisibleAnywhere, Category = "Weapon Properties")
     TObjectPtr<UWidgetComponent> PickupWidget;
 
+    // Fire Animation
+public:
+    void Fire() const;
+
+private:
+    UPROPERTY(EditAnywhere, Category = "Weapon Properties")
+    UAnimationAsset* FireAnimation;
+
     // STATE
 public:
     FORCEINLINE EWeaponState GetWeaponState() const { return WeaponState; }

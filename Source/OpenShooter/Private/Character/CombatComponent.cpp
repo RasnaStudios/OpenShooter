@@ -78,9 +78,7 @@ void UCombatComponent::ServerSetAiming_Implementation(const bool bIsAiming)
 
     // Set the walk speed based on the aiming state
     if (Character)
-    {
         Character->GetCharacterMovement()->MaxWalkSpeed = bIsAiming ? AimWalkSpeed : BaseWalkSpeed;
-    }
 }
 
 void UCombatComponent::OnRep_EquippedWeapon() const
@@ -95,8 +93,13 @@ void UCombatComponent::OnRep_EquippedWeapon() const
 void UCombatComponent::Fire(const bool ButtonPressed)
 {
     bButtonPressed = ButtonPressed;
+    if (EquippedWeapon == nullptr)
+        return;
     if (Character && bButtonPressed)
+    {
         Character->PlayFireMontage(bAiming);
+        EquippedWeapon->Fire();
+    }
 }
 
 // Called when the game starts
