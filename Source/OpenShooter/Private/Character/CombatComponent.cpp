@@ -37,8 +37,6 @@ void UCombatComponent::BeginPlay()
 void UCombatComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
     Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
-    FHitResult HitResult;
-    TraceUnderCrosshair(HitResult);
 }
 
 void UCombatComponent::EquipWeapon(AWeapon* Weapon)
@@ -108,25 +106,27 @@ void UCombatComponent::Fire(const bool bButtonPressed)
     bFireButtonPressed = bButtonPressed;
     if (bFireButtonPressed)
     {
+        FHitResult HitResult;
+        TraceUnderCrosshair(HitResult);
         // If we replace ServerFire with MulticastFire directly here, it will work only server and not on clients.
         // The reason is that clients do not have authority to call multicast functions directly; only the server can do that.
-        ServerFire();
+        ServerFire(HitResult.ImpactPoint);
     }
 }
 
-void UCombatComponent::ServerFire_Implementation()
+void UCombatComponent::ServerFire_Implementation(const FVector_NetQuantize& TraceHitTarget)
 {
-    MulticastFire();
+    MulticastFire(TraceHitTarget);
 }
 
-void UCombatComponent::MulticastFire_Implementation()
+void UCombatComponent::MulticastFire_Implementation(const FVector_NetQuantize& TraceHitTarget)
 {
     if (EquippedWeapon == nullptr)
         return;
     if (Character)
     {
         Character->PlayFireMontage(bAiming);
-        EquippedWeapon->Fire(HitTarget);
+        EquippedWeapon->Fire(TraceHitTarget);
     }
 }
 
@@ -153,17 +153,5 @@ void UCombatComponent::TraceUnderCrosshair(FHitResult& HitResult)
         QueryParams.AddIgnoredActor(Character);
         QueryParams.AddIgnoredActor(EquippedWeapon);
         GetWorld()->LineTraceSingleByChannel(HitResult, Start, End, ECollisionChannel::ECC_Visibility, QueryParams);
-
-        // If we didn't hit anything, we set the impact point to the end of the trace
-        if (!HitResult.bBlockingHit)
-        {
-            HitResult.ImpactPoint = End;
-            HitTarget = End;
-        }
-        else
-        {
-            HitTarget = HitResult.ImpactPoint;
-            DrawDebugSphere(GetWorld(), HitResult.ImpactPoint, 10.f, 12, FColor::Red);
-        }
     }
 }

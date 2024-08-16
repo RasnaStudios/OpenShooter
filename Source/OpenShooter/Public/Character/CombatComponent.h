@@ -50,10 +50,10 @@ protected:
 
     // This is necessary to replicate the sounds and visuals of the weapon firing
     UFUNCTION(Server, Reliable)
-    void ServerFire();
+    void ServerFire(const FVector_NetQuantize& TraceHitTarget);
 
     UFUNCTION(NetMulticast, Reliable)
-    void MulticastFire();
+    void MulticastFire(const FVector_NetQuantize& TraceHitTarget);
 
     void TraceUnderCrosshair(FHitResult& HitResult);
 
@@ -74,7 +74,4 @@ private:
 
     bool bFireButtonPressed;    // we don't replicate this because we could have automatic weapons, so it would be hard
     // to replicate the changes in the button press state. We use instead multicast RPCs
-
-    UPROPERTY()
-    FVector HitTarget;
 };
