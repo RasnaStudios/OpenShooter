@@ -5,7 +5,9 @@
 #include "Character/OpenShooterCharacter.h"
 #include "Components/SphereComponent.h"
 #include "Components/WidgetComponent.h"
+#include "Kismet/GameplayStatics.h"
 #include "Net/UnrealNetwork.h"
+#include "Weapon/Casing.h"
 
 // Sets default values
 AWeapon::AWeapon()
@@ -35,6 +37,8 @@ AWeapon::AWeapon()
 
     PickupWidget = CreateDefaultSubobject<UWidgetComponent>(TEXT("PickupWidget"));
     PickupWidget->SetupAttachment(RootComponent);
+    PickupWidget->SetDrawAtDesiredSize(true);
+    PickupWidget->SetWidgetSpace(EWidgetSpace::Screen);
 }
 
 void AWeapon::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
@@ -89,6 +93,19 @@ void AWeapon::Fire(const FVector& HitTarget)
 {
     if (FireAnimation)
         WeaponMesh->PlayAnimation(FireAnimation, false);
+
+    // Spawn the casing from the Ammo socket
+    if (CasingClass)
+    {
+        FTransform CasingTransform = WeaponMesh->GetSocketTransform(FName("AmmoEject"));
+
+        if (UWorld* World = GetWorld())
+        {
+            if (ACasing* Casing = World->SpawnActor<ACasing>(CasingClass, CasingTransform))
+            {
+            }
+        }
+    }
 }
 
 // This function runs on the server does everything that needs to be done when the weapon state change, on the server.

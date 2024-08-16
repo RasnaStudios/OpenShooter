@@ -7,6 +7,7 @@
 
 #include "Weapon.generated.h"
 
+class ACasing;
 class UWidgetComponent;
 class USphereComponent;
 
@@ -54,13 +55,16 @@ private:
     UPROPERTY(VisibleAnywhere, Category = "Weapon Properties")
     TObjectPtr<UWidgetComponent> PickupWidget;
 
+    UPROPERTY(EditAnywhere, Category = "Weapon Properties")
+    TSubclassOf<ACasing> CasingClass;
+
     // Fire Animation
 public:
     virtual void Fire(const FVector& HitTarget);
 
 private:
     UPROPERTY(EditAnywhere, Category = "Weapon Properties")
-    UAnimationAsset* FireAnimation;
+    TObjectPtr<UAnimationAsset> FireAnimation;
 
     // STATE
 public:

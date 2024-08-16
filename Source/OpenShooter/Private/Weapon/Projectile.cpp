@@ -5,11 +5,12 @@
 #include "Components/BoxComponent.h"
 #include "GameFramework/ProjectileMovementComponent.h"
 #include "Kismet/GameplayStatics.h"
+#include "Sound/SoundCue.h"
 
 AProjectile::AProjectile()
 {
     PrimaryActorTick.bCanEverTick = true;
-    bReplicates = true;
+    bReplicates = true;    // this replicates the actor, but the position is dictated by the server
 
     CollisionBox = CreateDefaultSubobject<UBoxComponent>(TEXT("CollisionBox"));
     SetRootComponent(CollisionBox);
@@ -38,6 +39,25 @@ void AProjectile::BeginPlay()
                 EAttachLocation::KeepWorldPosition,    // this will follow along with the collision box
                 false);
     }
+    if (HasAuthority())
+    {    // only the server should handle the hit events
+        CollisionBox->OnComponentHit.AddDynamic(this, &AProjectile::OnHit);
+    }
+}
+
+void AProjectile::Destroyed()
+{
+    if (ImpactParticles)
+        UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), ImpactParticles, GetActorTransform());
+    if (ImpactSound)
+        UGameplayStatics::PlaySoundAtLocation(GetWorld(), ImpactSound, GetActorLocation());
+    Super::Destroyed();
+}
+
+void AProjectile::OnHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComponent,
+    FVector NormalImpulse, const FHitResult& Hit)
+{
+    Destroy();
 }
 
 void AProjectile::Tick(float DeltaTime)
