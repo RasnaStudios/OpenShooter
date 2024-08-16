@@ -55,7 +55,7 @@ protected:
     UFUNCTION(NetMulticast, Reliable)
     void MulticastFire();
 
-    void TraceUnderCrosshair(FHitResult& HitResult) const;
+    void TraceUnderCrosshair(FHitResult& HitResult);
 
 private:
     AOpenShooterCharacter* Character;
@@ -73,5 +73,8 @@ private:
     float AimWalkSpeed;
 
     bool bFireButtonPressed;    // we don't replicate this because we could have automatic weapons, so it would be hard
-                                // to replicate the changes in the button press state. We use instead multicast RPCs
+    // to replicate the changes in the button press state. We use instead multicast RPCs
+
+    UPROPERTY()
+    FVector HitTarget;
 };

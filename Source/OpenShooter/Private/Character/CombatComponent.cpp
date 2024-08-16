@@ -38,7 +38,6 @@ void UCombatComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActo
 {
     Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
     FHitResult HitResult;
-    UE_LOG(LogTemp, Warning, TEXT("TickComponent"));
     TraceUnderCrosshair(HitResult);
 }
 
@@ -127,11 +126,11 @@ void UCombatComponent::MulticastFire_Implementation()
     if (Character)
     {
         Character->PlayFireMontage(bAiming);
-        EquippedWeapon->Fire();
+        EquippedWeapon->Fire(HitTarget);
     }
 }
 
-void UCombatComponent::TraceUnderCrosshair(FHitResult& HitResult) const
+void UCombatComponent::TraceUnderCrosshair(FHitResult& HitResult)
 {
     // We trace from the center of the screen (crosshair)
     FVector2D ViewportSize;
@@ -159,9 +158,11 @@ void UCombatComponent::TraceUnderCrosshair(FHitResult& HitResult) const
         if (!HitResult.bBlockingHit)
         {
             HitResult.ImpactPoint = End;
+            HitTarget = End;
         }
         else
         {
+            HitTarget = HitResult.ImpactPoint;
             DrawDebugSphere(GetWorld(), HitResult.ImpactPoint, 10.f, 12, FColor::Red);
         }
     }

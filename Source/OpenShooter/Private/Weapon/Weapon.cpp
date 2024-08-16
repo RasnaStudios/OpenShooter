@@ -85,7 +85,7 @@ void AWeapon::OnSphereEndOverlap(
         Character->SetOverlappingWeapon(nullptr);
 }
 
-void AWeapon::Fire() const
+void AWeapon::Fire(const FVector& HitTarget)
 {
     if (FireAnimation)
         WeaponMesh->PlayAnimation(FireAnimation, false);

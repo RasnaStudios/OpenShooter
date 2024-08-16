@@ -7,6 +7,8 @@
 
 #include "Projectile.generated.h"
 
+class UProjectileMovementComponent;
+
 UCLASS()
 class OPENSHOOTER_API AProjectile : public AActor
 {
@@ -22,4 +24,13 @@ protected:
 private:
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Components|Projectile", meta = (AllowPrivateAccess = "true"))
     class UBoxComponent* CollisionBox;
+
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components|Projectile", meta = (AllowPrivateAccess = "true"))
+    UProjectileMovementComponent* ProjectileMovement;
+
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Components|Projectile", meta = (AllowPrivateAccess = "true"))
+    UParticleSystem* Tracer;
+
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Components|Projectile", meta = (AllowPrivateAccess = "true"))
+    UParticleSystemComponent* TracerComponent;
 };

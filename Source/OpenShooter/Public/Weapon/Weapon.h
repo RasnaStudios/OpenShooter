@@ -56,7 +56,7 @@ private:
 
     // Fire Animation
 public:
-    void Fire() const;
+    virtual void Fire(const FVector& HitTarget);
 
 private:
     UPROPERTY(EditAnywhere, Category = "Weapon Properties")
