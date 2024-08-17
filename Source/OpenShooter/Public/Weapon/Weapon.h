@@ -34,6 +34,22 @@ public:
 
     void ShowPickupWidget(bool bShow) const;
 
+    // Textures for the weapon crosshair
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Crosshair")
+    UTexture2D* CrosshairsCenter;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Crosshair")
+    UTexture2D* CrosshairsLeft;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Crosshair")
+    UTexture2D* CrosshairsRight;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Crosshair")
+    UTexture2D* CrosshairsTop;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Crosshair")
+    UTexture2D* CrosshairsBottom;
+
 protected:
     // Called when the game starts or when spawned
     virtual void BeginPlay() override;

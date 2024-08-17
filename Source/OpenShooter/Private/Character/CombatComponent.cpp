@@ -3,7 +3,9 @@
 #include "Character/CombatComponent.h"
 
 #include "Character/OpenShooterCharacter.h"
+#include "Character/OpenShooterPlayerController.h"
 #include "GameFramework/CharacterMovementComponent.h"
+#include "HUD/OpenShooterHUD.h"
 #include "Kismet/GameplayStatics.h"
 #include "Net/UnrealNetwork.h"
 #include "Weapon/Weapon.h"
@@ -37,6 +39,8 @@ void UCombatComponent::BeginPlay()
 void UCombatComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
     Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
+
+    SetHUDCrosshair(DeltaTime);
 }
 
 void UCombatComponent::EquipWeapon(AWeapon* Weapon)
@@ -153,5 +157,46 @@ void UCombatComponent::TraceUnderCrosshair(FHitResult& HitResult)
         QueryParams.AddIgnoredActor(Character);
         QueryParams.AddIgnoredActor(EquippedWeapon);
         GetWorld()->LineTraceSingleByChannel(HitResult, Start, End, ECollisionChannel::ECC_Visibility, QueryParams);
+    }
+}
+
+void UCombatComponent::SetHUDCrosshair(float DeltaSeconds)
+{
+    if (Character == nullptr || Character->Controller == nullptr)
+        return;
+
+    Controller = Controller == nullptr ? Cast<AOpenShooterPlayerController>(Character->Controller) : Controller;
+    if (Controller)
+    {
+        HUD = HUD == nullptr ? Cast<AOpenShooterHUD>(Controller->GetHUD()) : HUD;
+        if (HUD)
+        {
+            FHUDPackage HUDPackage;
+            if (EquippedWeapon)
+            {
+                HUDPackage.CrosshairsCenter = EquippedWeapon->CrosshairsCenter;
+                HUDPackage.CrosshairsLeft = EquippedWeapon->CrosshairsLeft;
+                HUDPackage.CrosshairsRight = EquippedWeapon->CrosshairsRight;
+                HUDPackage.CrosshairsBottom = EquippedWeapon->CrosshairsBottom;
+                HUDPackage.CrosshairsTop = EquippedWeapon->CrosshairsTop;
+            }
+            else
+            {
+                HUDPackage.CrosshairsCenter = nullptr;
+                HUDPackage.CrosshairsLeft = nullptr;
+                HUDPackage.CrosshairsRight = nullptr;
+                HUDPackage.CrosshairsBottom = nullptr;
+                HUDPackage.CrosshairsTop = nullptr;
+            }
+            HUD->SetHUDPackage(HUDPackage);
+        }
+        else
+        {
+            UE_LOG(LogTemp, Warning, TEXT("HUD is null"));
+        }
+    }
+    else
+    {
+        UE_LOG(LogTemp, Warning, TEXT("Controller is null"));
     }
 }

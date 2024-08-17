@@ -7,6 +7,8 @@
 
 #include "CombatComponent.generated.h"
 
+class AOpenShooterHUD;
+class AOpenShooterPlayerController;
 class AWeapon;
 class AOpenShooterCharacter;
 
@@ -57,8 +59,12 @@ protected:
 
     void TraceUnderCrosshair(FHitResult& HitResult);
 
+    void SetHUDCrosshair(float DeltaSeconds);
+
 private:
     AOpenShooterCharacter* Character;
+    AOpenShooterPlayerController* Controller;
+    AOpenShooterHUD* HUD;
 
     UPROPERTY(ReplicatedUsing = OnRep_EquippedWeapon)
     AWeapon* EquippedWeapon;
