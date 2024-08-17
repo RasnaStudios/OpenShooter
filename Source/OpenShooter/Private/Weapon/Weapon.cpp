@@ -5,7 +5,6 @@
 #include "Character/OpenShooterCharacter.h"
 #include "Components/SphereComponent.h"
 #include "Components/WidgetComponent.h"
-#include "Kismet/GameplayStatics.h"
 #include "Net/UnrealNetwork.h"
 #include "Weapon/Casing.h"
 
@@ -97,14 +96,10 @@ void AWeapon::Fire(const FVector& HitTarget)
     // Spawn the casing from the Ammo socket
     if (CasingClass)
     {
-        FTransform CasingTransform = WeaponMesh->GetSocketTransform(FName("AmmoEject"));
+        const FTransform CasingTransform = WeaponMesh->GetSocketTransform(FName("AmmoEject"));
 
         if (UWorld* World = GetWorld())
-        {
-            if (ACasing* Casing = World->SpawnActor<ACasing>(CasingClass, CasingTransform))
-            {
-            }
-        }
+            ACasing* Casing = World->SpawnActor<ACasing>(CasingClass, CasingTransform);
     }
 }
 
