@@ -69,5 +69,23 @@ void UOpenShooterAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
         // Now we set the location and the rotation of the left hand to the target transform
         LeftHandTransform.SetLocation(LeftHandTargetLocation);
         LeftHandTransform.SetRotation(LeftHandTargetRotation.Quaternion());
+
+        // We want the right hand to look at the hit target, because the aim offset is not matching with the crosshair
+        if (OpenShooterCharacter->IsLocallyControlled())
+        {    // we don't waste computation on the server. The client will tell the server where it's shooting
+            bLocallyControlled = true;
+            FTransform RightHandTransform =
+                EquippedWeapon->GetMesh()->GetSocketTransform(FName("RightHandSocket"), ERelativeTransformSpace::RTS_World);
+            RightHandRotation = UKismetMathLibrary::FindLookAtRotation(RightHandTransform.GetLocation(),
+                RightHandTransform.GetLocation() + (RightHandTransform.GetLocation() - OpenShooterCharacter->GetHitTarget()));
+        }
+
+        // FOR A NEW CHARACTER: check the right hand socket and rotate it until the two debug lines are aligned
+        // FTransform MuzzleTipTransform = EquippedWeapon->GetMesh()->GetSocketTransform(FName("MuzzleFlash"),
+        // ERelativeTransformSpace::RTS_World); FVector
+        // MuzzleX(FRotationMatrix(MuzzleTipTransform.GetRotation().Rotator()).GetUnitAxis(EAxis::X)); DrawDebugLine(GetWorld(),
+        // MuzzleTipTransform.GetLocation(), MuzzleTipTransform.GetLocation() + MuzzleX * 1000, FColor::Red, false, 0.1f, 0, 1);
+        // DrawDebugLine(GetWorld(), MuzzleTipTransform.GetLocation(), OpenShooterCharacter->GetHitTarget(), FColor::Yellow, false,
+        // 0.1f, 0, 1);
     }
 }

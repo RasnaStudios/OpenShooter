@@ -80,4 +80,13 @@ private:
 
     bool bFireButtonPressed;    // we don't replicate this because we could have automatic weapons, so it would be hard
     // to replicate the changes in the button press state. We use instead multicast RPCs
+
+    // HUD and Crosshair
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "HUD", meta = (AllowPrivateAccess = "true"))
+    float CrosshairVelocityFactor;
+
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "HUD", meta = (AllowPrivateAccess = "true"))
+    float CrosshairInAirVelocityFactor;
+
+    FVector HitTarget;
 };

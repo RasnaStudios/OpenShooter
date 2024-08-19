@@ -41,6 +41,13 @@ void UCombatComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActo
     Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 
     SetHUDCrosshair(DeltaTime);
+
+    if (Character && Character->IsLocallyControlled())
+    {
+        FHitResult HitResult;
+        TraceUnderCrosshair(HitResult);
+        HitTarget = HitResult.ImpactPoint;
+    }
 }
 
 void UCombatComponent::EquipWeapon(AWeapon* Weapon)
@@ -188,15 +195,27 @@ void UCombatComponent::SetHUDCrosshair(float DeltaSeconds)
                 HUDPackage.CrosshairsBottom = nullptr;
                 HUDPackage.CrosshairsTop = nullptr;
             }
+            // Calculate the spread of the crosshair
+            FVector2D WalkSpeedRange(0.f, Character->GetCharacterMovement()->MaxWalkSpeed);
+            FVector2D VelocityMultiplierRange(0.f, 1.f);
+            FVector Velocity = Character->GetVelocity();
+            Velocity.Z = 0.f;
+
+            CrosshairVelocityFactor = FMath::GetMappedRangeValueClamped(WalkSpeedRange, VelocityMultiplierRange, Velocity.Size());
+            // TODO: if crouching, we should probably increase the spread
+
+            // If falling, we should increase the spread even more
+            if (Character->GetCharacterMovement()->IsFalling())
+            {
+                CrosshairInAirVelocityFactor = FMath::FInterpTo(CrosshairInAirVelocityFactor, 2.25, DeltaSeconds, 2.25f);
+            }
+            else
+            {    // when hitting the ground we want to go back to 0 very quickly
+                CrosshairInAirVelocityFactor = FMath::FInterpTo(CrosshairInAirVelocityFactor, 0.f, DeltaSeconds, 30.f);
+            }
+
+            HUDPackage.CrosshairSpread = CrosshairVelocityFactor + CrosshairInAirVelocityFactor;
             HUD->SetHUDPackage(HUDPackage);
         }
-        else
-        {
-            UE_LOG(LogTemp, Warning, TEXT("HUD is null"));
-        }
-    }
-    else
-    {
-        UE_LOG(LogTemp, Warning, TEXT("Controller is null"));
     }
 }
