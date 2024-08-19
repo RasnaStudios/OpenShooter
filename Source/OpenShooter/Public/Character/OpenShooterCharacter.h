@@ -2,6 +2,7 @@
 
 #pragma once
 
+#include "CombatComponent.h"
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
 #include "Logging/LogMacros.h"
@@ -147,6 +148,7 @@ public:
     FORCEINLINE float GetAimOffsetYaw() const { return AimOffset_Yaw; }
     FORCEINLINE float GetAimOffsetPitch() const { return AimOffset_Pitch; }
     FORCEINLINE ETurningInPlace GetTurningInPlace() const { return TurningInPlace; }
+    FORCEINLINE FVector GetHitTarget() const { return Combat ? Combat->HitTarget : FVector(); }
 
     AWeapon* GetEquippedWeapon() const;
 };
