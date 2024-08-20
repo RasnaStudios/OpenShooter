@@ -65,8 +65,9 @@ void UCombatComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActo
         // if aiming, change camera aperture and focal distance to avoid blur in foreground and background
         if (bAiming && Character->GetFollowCamera())
         {
-            Character->GetFollowCamera()->PostProcessSettings.DepthOfFieldFstop = 32.f;
-            Character->GetFollowCamera()->PostProcessSettings.DepthOfFieldFocalDistance = 10000.f;
+            Character->GetFollowCamera()->PostProcessSettings.DepthOfFieldFstop = 32.f;    // fixes the blur in foreground
+            Character->GetFollowCamera()->PostProcessSettings.DepthOfFieldFocalDistance =
+                10000.f;    // fixes the blur in background
         }
     }
 }
@@ -143,6 +144,12 @@ void UCombatComponent::Fire(const bool bButtonPressed)
         // If we replace ServerFire with MulticastFire directly here, it will work only server and not on clients.
         // The reason is that clients do not have authority to call multicast functions directly; only the server can do that.
         ServerFire(HitResult.ImpactPoint);
+
+        // if we are shooting, we should increase the spread of the crosshair
+        if (EquippedWeapon)
+        {
+            CrosshairShootingFactor = FMath::Clamp(CrosshairShootingFactor + 0.75f, 0.f, 10.f);
+        }
     }
 }
 
@@ -235,7 +242,21 @@ void UCombatComponent::SetHUDCrosshair(float DeltaSeconds)
                 CrosshairInAirVelocityFactor = FMath::FInterpTo(CrosshairInAirVelocityFactor, 0.f, DeltaSeconds, 30.f);
             }
 
-            HUDPackage.CrosshairSpread = CrosshairVelocityFactor + CrosshairInAirVelocityFactor;
+            // If aiming, we should decrease the spread
+            if (bAiming)
+            {
+                CrosshairAimFactor = FMath::FInterpTo(CrosshairAimFactor, 0.58f, DeltaSeconds, 30.f);
+            }
+            else
+            {
+                CrosshairAimFactor = FMath::FInterpTo(CrosshairAimFactor, 0.f, DeltaSeconds, 30.f);
+            }
+
+            // If shooting, we should increase the spread (in Fire function we are increasing this value)
+            CrosshairShootingFactor = FMath::FInterpTo(CrosshairShootingFactor, 0.f, DeltaSeconds, 5.f);
+
+            HUDPackage.CrosshairSpread = BaselineCrosshairSpread + CrosshairVelocityFactor + CrosshairInAirVelocityFactor -
+                                         CrosshairAimFactor + CrosshairShootingFactor;
             HUD->SetHUDPackage(HUDPackage);
         }
     }
