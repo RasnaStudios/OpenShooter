@@ -181,17 +181,28 @@ void UCombatComponent::TraceUnderCrosshair(FHitResult& HitResult)
     const FVector2D CrosshairLocation(ViewportSize.X / 2, ViewportSize.Y / 2);
     FVector CrosshairWorldPosition;
     FVector CrosshairWorldDirection;
-    bool bScreenToWorld = UGameplayStatics::DeprojectScreenToWorld(
+    // ReSharper disable once CppTooWideScope
+    const bool bScreenToWorld = UGameplayStatics::DeprojectScreenToWorld(
         UGameplayStatics::GetPlayerController(this, 0), CrosshairLocation, CrosshairWorldPosition, CrosshairWorldDirection);
     if (bScreenToWorld)
     {
-        const FVector Start = CrosshairWorldPosition;
+        FVector Start = CrosshairWorldPosition;
         const FVector End = CrosshairWorldPosition + CrosshairWorldDirection * TRACE_LENGTH;
 
         FCollisionQueryParams QueryParams;
         QueryParams.AddIgnoredActor(Character);
         QueryParams.AddIgnoredActor(EquippedWeapon);
         GetWorld()->LineTraceSingleByChannel(HitResult, Start, End, ECollisionChannel::ECC_Visibility, QueryParams);
+
+        // Color the crosshair red if we can interact with the object (aiming at a character)
+        if (HitResult.GetActor() && HitResult.GetActor()->Implements<UInteractWithCrosshairInterface>())
+        {
+            HUDPackage.CrosshairColor = FLinearColor::Red;
+        }
+        else
+        {
+            HUDPackage.CrosshairColor = FLinearColor::White;
+        }
     }
 }
 
@@ -206,7 +217,6 @@ void UCombatComponent::SetHUDCrosshair(float DeltaSeconds)
         HUD = HUD == nullptr ? Cast<AOpenShooterHUD>(Controller->GetHUD()) : HUD;
         if (HUD)
         {
-            FHUDPackage HUDPackage;
             if (EquippedWeapon)
             {
                 HUDPackage.CrosshairsCenter = EquippedWeapon->CrosshairsCenter;

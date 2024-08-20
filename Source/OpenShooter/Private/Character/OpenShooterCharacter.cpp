@@ -74,6 +74,8 @@ AOpenShooterCharacter::AOpenShooterCharacter()
     // Avoid blocking the camera with other characters capsule
     GetCapsuleComponent()->SetCollisionResponseToChannel(ECollisionChannel::ECC_Camera, ECollisionResponse::ECR_Ignore);
     GetMesh()->SetCollisionResponseToChannel(ECollisionChannel::ECC_Camera, ECollisionResponse::ECR_Ignore);
+    // We block visibility to allow to aim at other characters
+    GetCapsuleComponent()->SetCollisionResponseToChannel(ECollisionChannel::ECC_Visibility, ECollisionResponse::ECR_Block);
 
     // Set character to not rotate in place initially
     TurningInPlace = ETurningInPlace::ETIP_NotTurning;
