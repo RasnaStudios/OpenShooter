@@ -76,8 +76,13 @@ void UOpenShooterAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
             bLocallyControlled = true;
             FTransform RightHandTransform =
                 EquippedWeapon->GetMesh()->GetSocketTransform(FName("RightHandSocket"), ERelativeTransformSpace::RTS_World);
-            RightHandRotation = UKismetMathLibrary::FindLookAtRotation(RightHandTransform.GetLocation(),
+
+            const FRotator LookAtRotation = UKismetMathLibrary::FindLookAtRotation(RightHandTransform.GetLocation(),
                 RightHandTransform.GetLocation() + (RightHandTransform.GetLocation() - OpenShooterCharacter->GetHitTarget()));
+
+            // We interpolate the rotation of the right hand towards the hit target so we don't see the hand snapping to a new
+            // rotation
+            RightHandRotation = UKismetMathLibrary::RInterpTo(RightHandRotation, LookAtRotation, DeltaSeconds, 10.0f);
         }
 
         // FOR A NEW CHARACTER: check the right hand socket and rotate it until the two debug lines are aligned

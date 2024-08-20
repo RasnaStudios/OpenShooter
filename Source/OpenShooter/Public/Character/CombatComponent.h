@@ -4,6 +4,7 @@
 
 #include "Components/ActorComponent.h"
 #include "CoreMinimal.h"
+#include "HUD/OpenShooterHUD.h"
 
 #include "CombatComponent.generated.h"
 
@@ -82,6 +83,8 @@ private:
     // to replicate the changes in the button press state. We use instead multicast RPCs
 
     // = HUD and Crosshair =
+
+    FHUDPackage HUDPackage;
 
     // Initial crosshair spread
     UPROPERTY(EditAnywhere, Category = "HUD")

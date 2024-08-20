@@ -5,6 +5,7 @@
 #include "CombatComponent.h"
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
+#include "Interfaces/InteractWithCrosshairInterface.h"
 #include "Logging/LogMacros.h"
 #include "Types/TurningInPlace.h"
 
@@ -22,7 +23,7 @@ struct FInputActionValue;
 DECLARE_LOG_CATEGORY_EXTERN(LogTemplateCharacter, Log, All);
 
 UCLASS(config = Game)
-class AOpenShooterCharacter : public ACharacter
+class AOpenShooterCharacter : public ACharacter, public IInteractWithCrosshairInterface
 {
     GENERATED_BODY()
 
