@@ -187,6 +187,13 @@ void UCombatComponent::TraceUnderCrosshair(FHitResult& HitResult)
     if (bScreenToWorld)
     {
         FVector Start = CrosshairWorldPosition;
+
+        if (Character)
+        {    // we push forward the start location to avoid hitting the character and characters behind the character
+            const float DistanceToCharacter = FVector::Dist(Character->GetActorLocation(), Start);
+            Start += CrosshairWorldDirection * (DistanceToCharacter + 100.f);
+        }
+
         const FVector End = CrosshairWorldPosition + CrosshairWorldDirection * TRACE_LENGTH;
 
         FCollisionQueryParams QueryParams;
