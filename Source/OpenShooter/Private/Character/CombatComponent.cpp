@@ -2,6 +2,7 @@
 
 #include "Character/CombatComponent.h"
 
+#include "Camera/CameraComponent.h"
 #include "Character/OpenShooterCharacter.h"
 #include "Character/OpenShooterPlayerController.h"
 #include "GameFramework/CharacterMovementComponent.h"
@@ -33,20 +34,40 @@ void UCombatComponent::BeginPlay()
     Super::BeginPlay();
 
     if (Character)
+    {
         Character->GetCharacterMovement()->MaxWalkSpeed = BaseWalkSpeed;
+
+        // Set the current FOV and the default FOV
+        if (Character->GetFollowCamera())
+        {
+            DefaultFOV = Character->GetFollowCamera()->FieldOfView;
+            CurrentFOV = DefaultFOV;
+        }
+    }
 }
 
 void UCombatComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
     Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 
-    SetHUDCrosshair(DeltaTime);
-
     if (Character && Character->IsLocallyControlled())
     {
+        SetHUDCrosshair(DeltaTime);
+
+        // Obtain the hit target for the right hand rotation correction to aim at the crosshair
         FHitResult HitResult;
         TraceUnderCrosshair(HitResult);
         HitTarget = HitResult.ImpactPoint;
+
+        // Set the FOV based on the aiming state
+        InterpFOV(DeltaTime);
+
+        // if aiming, change camera aperture and focal distance to avoid blur in foreground and background
+        if (bAiming && Character->GetFollowCamera())
+        {
+            Character->GetFollowCamera()->PostProcessSettings.DepthOfFieldFstop = 32.f;
+            Character->GetFollowCamera()->PostProcessSettings.DepthOfFieldFocalDistance = 10000.f;
+        }
     }
 }
 
@@ -217,5 +238,28 @@ void UCombatComponent::SetHUDCrosshair(float DeltaSeconds)
             HUDPackage.CrosshairSpread = CrosshairVelocityFactor + CrosshairInAirVelocityFactor;
             HUD->SetHUDPackage(HUDPackage);
         }
+    }
+}
+
+void UCombatComponent::InterpFOV(const float DeltaSeconds)
+{
+    if (EquippedWeapon == nullptr)
+        return;
+
+    // The weapon controls how much the FOV should be zoomed when aiming
+    // but when not aiming, we want to go back to the default FOV and the default interp speed
+
+    if (bAiming)
+    {
+        CurrentFOV =
+            FMath::FInterpTo(CurrentFOV, EquippedWeapon->GetZoomedFOV(), DeltaSeconds, EquippedWeapon->GetZoomedInterpSpeed());
+    }
+    else
+    {
+        CurrentFOV = FMath::FInterpTo(CurrentFOV, DefaultFOV, DeltaSeconds, ZoomedInterpSpeed);
+    }
+    if (Character && Character->GetFollowCamera())
+    {
+        Character->GetFollowCamera()->SetFieldOfView(CurrentFOV);
     }
 }
