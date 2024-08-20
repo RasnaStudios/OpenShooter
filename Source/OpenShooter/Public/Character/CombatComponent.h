@@ -81,12 +81,28 @@ private:
     bool bFireButtonPressed;    // we don't replicate this because we could have automatic weapons, so it would be hard
     // to replicate the changes in the button press state. We use instead multicast RPCs
 
-    // HUD and Crosshair
+    // = HUD and Crosshair =
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "HUD", meta = (AllowPrivateAccess = "true"))
     float CrosshairVelocityFactor;
 
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "HUD", meta = (AllowPrivateAccess = "true"))
     float CrosshairInAirVelocityFactor;
 
+    // The point where the crosshair is pointing, used for correcting the right hand rotation to point towards the crosshair
+    // (Done in the animation blueprint)
     FVector HitTarget;
+
+    // = Aim and FOV =
+    UPROPERTY(EditAnywhere, Category = "Combat")
+    float DefaultFOV;    // FOV when not aiming set to the camera's base FOV in BeginPlay
+
+    float CurrentFOV;    // Current FOV of the camera
+
+    UPROPERTY(EditAnywhere, Category = "Combat")
+    float ZoomedFOV = 30.f;
+
+    UPROPERTY(EditAnywhere, Category = "Combat")
+    float ZoomedInterpSpeed = 20.f;
+
+    void InterpFOV(float DeltaSeconds);
 };

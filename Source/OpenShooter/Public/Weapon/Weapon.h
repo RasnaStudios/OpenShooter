@@ -35,19 +35,19 @@ public:
     void ShowPickupWidget(bool bShow) const;
 
     // Textures for the weapon crosshair
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Crosshair")
+    UPROPERTY(EditAnywhere, Category = "Crosshair")
     UTexture2D* CrosshairsCenter;
 
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Crosshair")
+    UPROPERTY(EditAnywhere, Category = "Crosshair")
     UTexture2D* CrosshairsLeft;
 
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Crosshair")
+    UPROPERTY(EditAnywhere, Category = "Crosshair")
     UTexture2D* CrosshairsRight;
 
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Crosshair")
+    UPROPERTY(EditAnywhere, Category = "Crosshair")
     UTexture2D* CrosshairsTop;
 
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Crosshair")
+    UPROPERTY(EditAnywhere, Category = "Crosshair")
     UTexture2D* CrosshairsBottom;
 
 protected:
@@ -72,7 +72,7 @@ private:
     TObjectPtr<UWidgetComponent> PickupWidget;
 
     UPROPERTY(EditAnywhere, Category = "Weapon Properties")
-    TSubclassOf<ACasing> CasingClass;
+    TSubclassOf<ACasing> CasingClass;    // the bullet shell blueprint
 
     // Fire Animation
 public:
@@ -94,7 +94,16 @@ private:
     UPROPERTY(VisibleAnywhere, ReplicatedUsing = OnRep_WeaponState, Category = "Weapon Properties")
     EWeaponState WeaponState;
 
+    // Zoomed FOV while aiming
+    UPROPERTY(EditAnywhere, Category = "Weapon Properties")
+    float ZoomedFOV = 30.f;
+
+    UPROPERTY(EditAnywhere, Category = "Weapon Properties")
+    float ZoomedInterpSpeed = 20.f;
+
 public:
     FORCEINLINE USphereComponent* GetAreaSphere() const { return AreaSphere; }
     FORCEINLINE UMeshComponent* GetMesh() const { return WeaponMesh; }
+    FORCEINLINE float GetZoomedFOV() const { return ZoomedFOV; }
+    FORCEINLINE float GetZoomedInterpSpeed() const { return ZoomedInterpSpeed; }
 };
