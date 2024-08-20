@@ -82,11 +82,26 @@ private:
     // to replicate the changes in the button press state. We use instead multicast RPCs
 
     // = HUD and Crosshair =
-    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "HUD", meta = (AllowPrivateAccess = "true"))
+
+    // Initial crosshair spread
+    UPROPERTY(EditAnywhere, Category = "HUD")
+    float BaselineCrosshairSpread = 0.5f;
+
+    // Default crosshair spreading velocity
+    UPROPERTY(EditAnywhere, Category = "HUD")
     float CrosshairVelocityFactor;
 
-    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "HUD", meta = (AllowPrivateAccess = "true"))
+    // Crosshair spreading velocity when in the air
+    UPROPERTY(EditAnywhere, Category = "HUD")
     float CrosshairInAirVelocityFactor;
+
+    // Crosshair spreading when aiming
+    UPROPERTY(EditAnywhere, Category = "HUD")
+    float CrosshairAimFactor;
+
+    // Crosshair spreading when shooting
+    UPROPERTY(EditAnywhere, Category = "HUD")
+    float CrosshairShootingFactor;
 
     // The point where the crosshair is pointing, used for correcting the right hand rotation to point towards the crosshair
     // (Done in the animation blueprint)
