@@ -94,6 +94,11 @@ private:
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components|Combat", meta = (AllowPrivateAccess = "true"))
     UCombatComponent* Combat;
 
+    void HideCameraIfCharacterClose();
+
+    UPROPERTY(EditAnywhere, Category = "Components|Camera")
+    float CameraHideDistanceThreshold = 200.f;
+
 protected:
     // APawn interface
     virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
