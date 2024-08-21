@@ -115,6 +115,8 @@ void AOpenShooterCharacter::Tick(float DeltaSeconds)
 
     // Setting the aim offset
     AimOffset(DeltaSeconds);
+
+    HideCameraIfCharacterClose();
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -398,4 +400,26 @@ void AOpenShooterCharacter::FireReleased()
 {
     if (Combat)
         Combat->Fire(false);
+}
+
+void AOpenShooterCharacter::HideCameraIfCharacterClose()
+{
+    if (!IsLocallyControlled())
+        return;
+    if ((FollowCamera->GetComponentLocation() - GetActorLocation()).Size() < CameraHideDistanceThreshold)
+    {
+        GetMesh()->SetVisibility(false);
+        if (Combat && Combat->EquippedWeapon)
+        {
+            Combat->EquippedWeapon->GetMesh()->bOwnerNoSee = true;
+        }
+    }
+    else
+    {
+        GetMesh()->SetVisibility(true);
+        if (Combat && Combat->EquippedWeapon)
+        {
+            Combat->EquippedWeapon->GetMesh()->bOwnerNoSee = false;
+        }
+    }
 }
