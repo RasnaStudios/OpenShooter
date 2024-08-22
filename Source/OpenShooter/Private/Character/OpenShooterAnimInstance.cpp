@@ -35,6 +35,7 @@ void UOpenShooterAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
     bIsCrouched = OpenShooterCharacter->bIsCrouched;
     bIsAiming = OpenShooterCharacter->IsAiming();
     TurningInPlace = OpenShooterCharacter->GetTurningInPlace();
+    bRotateRootBone = OpenShooterCharacter->ShouldRotateRootBone();
 
     EquippedWeapon = OpenShooterCharacter->GetEquippedWeapon();
     bWeaponEquipped = OpenShooterCharacter->IsWeaponEquipped();
