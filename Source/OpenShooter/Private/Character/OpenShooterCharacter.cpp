@@ -15,6 +15,7 @@
 #include "InputActionValue.h"
 #include "Kismet/KismetMathLibrary.h"
 #include "Net/UnrealNetwork.h"
+#include "OpenShooter.h"
 #include "Weapon/Weapon.h"
 
 DEFINE_LOG_CATEGORY(LogTemplateCharacter);
@@ -70,6 +71,8 @@ AOpenShooterCharacter::AOpenShooterCharacter()
     GetCharacterMovement()->SetCrouchedHalfHeight(60.0f);
     GetCharacterMovement()->MaxWalkSpeedCrouched = 200.0f;
     GetCharacterMovement()->RotationRate = FRotator(0.0f, 850.0f, 0.0f);
+
+    GetMesh()->SetCollisionObjectType(ECC_SkeletalMesh);
 
     // Avoid blocking the camera with other characters capsule
     GetCapsuleComponent()->SetCollisionResponseToChannel(ECollisionChannel::ECC_Camera, ECollisionResponse::ECR_Ignore);
@@ -221,6 +224,25 @@ void AOpenShooterCharacter::PlayFireMontage(const bool bAiming) const
         const FName Section = bAiming ? FName("RifleAim") : FName("RifleHip");
         AnimInstance->Montage_JumpToSection(Section, FireWeaponMontage);
     }
+}
+
+void AOpenShooterCharacter::PlayHitReactMontage() const
+{
+    if (Combat == nullptr || Combat->EquippedWeapon == nullptr)
+        return;
+
+    UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
+    if (AnimInstance && FireWeaponMontage)
+    {
+        AnimInstance->Montage_Play(FireWeaponMontage, 1.0f);
+        FName SectionName("FromFront");
+        AnimInstance->Montage_JumpToSection(SectionName, FireWeaponMontage);
+    }
+}
+
+void AOpenShooterCharacter::MulticastHit_Implementation()
+{
+    PlayHitReactMontage();
 }
 
 void AOpenShooterCharacter::Move(const FInputActionValue& Value)
@@ -402,7 +424,7 @@ void AOpenShooterCharacter::FireReleased()
         Combat->Fire(false);
 }
 
-void AOpenShooterCharacter::HideCameraIfCharacterClose()
+void AOpenShooterCharacter::HideCameraIfCharacterClose() const
 {
     if (!IsLocallyControlled())
         return;
