@@ -9,6 +9,7 @@
 
 class UBoxComponent;
 class UProjectileMovementComponent;
+class USoundCue;
 
 UCLASS()
 class OPENSHOOTER_API AProjectile : public AActor

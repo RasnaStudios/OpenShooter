@@ -7,6 +7,8 @@
 
 #include "Casing.generated.h"
 
+class USoundCue;
+
 UCLASS()
 class OPENSHOOTER_API ACasing : public AActor
 {
