@@ -2,7 +2,6 @@
 
 #include "Weapon/ProjectileWeapon.h"
 
-#include "Kismet/GameplayStatics.h"
 #include "Weapon/Projectile.h"
 
 void AProjectileWeapon::Fire(const FVector& HitTarget)
@@ -14,7 +13,7 @@ void AProjectileWeapon::Fire(const FVector& HitTarget)
 
     APawn* InstigatorPawn = Cast<APawn>(GetOwner());
 
-    const FTransform SocketTransform = GetMesh()->GetSocketTransform(FName("MuzzleFlashSocket"));
+    const FTransform SocketTransform = GetMesh()->GetSocketTransform(FName("MuzzleFlash"));
     const FVector ToTarget =
         HitTarget - SocketTransform.GetLocation();    // From the muzzle to hit location from TraceUnderCrosshair
     const FRotator TargetRotation = ToTarget.Rotation();

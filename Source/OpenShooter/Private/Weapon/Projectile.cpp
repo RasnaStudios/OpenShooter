@@ -6,6 +6,7 @@
 #include "Components/BoxComponent.h"
 #include "GameFramework/ProjectileMovementComponent.h"
 #include "Kismet/GameplayStatics.h"
+#include "OpenShooter.h"
 #include "Sound/SoundCue.h"
 
 AProjectile::AProjectile()
@@ -22,7 +23,7 @@ AProjectile::AProjectile()
     CollisionBox->SetCollisionResponseToAllChannels(ECR_Ignore);                // ignore all channels
     CollisionBox->SetCollisionResponseToChannel(ECC_Visibility, ECR_Block);     // but block visibility channel
     CollisionBox->SetCollisionResponseToChannel(ECC_WorldStatic, ECR_Block);    // and block world static channel
-    // CollisionBox->SetCollisionResponseToChannel(ECC_SkeletalMesh, ECollisionResponse::ECR_Block);   // and block pawn channel
+    CollisionBox->SetCollisionResponseToChannel(ECC_SkeletalMesh, ECollisionResponse::ECR_Block);    // and block pawn channel
 
     ProjectileMovement = CreateDefaultSubobject<UProjectileMovementComponent>(TEXT("ProjectileMovement"));
     ProjectileMovement->bRotationFollowsVelocity = true;
@@ -33,6 +34,9 @@ AProjectile::AProjectile()
 void AProjectile::BeginPlay()
 {
     Super::BeginPlay();
+
+    // To see where the projectile is spawned. It should spawn at the muzzle of the gun, not at the center
+    // DrawDebugSphere(GetWorld(), GetActorLocation(), 10.f, 12, FColor::Red, true, 5.f, 0, 1.f);
 
     if (Tracer)
     {
