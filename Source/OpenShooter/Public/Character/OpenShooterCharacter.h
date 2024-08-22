@@ -43,6 +43,10 @@ public:
     UFUNCTION(NetMulticast, Unreliable)
     void MulticastHit();
 
+    // We need to run the simulated proxies' turn in place only when necessary instead of doing in tick (because tick is not fast
+    // enough)
+    virtual void OnRep_ReplicatedMovement() override;
+
 private:
     /** Camera boom positioning the camera behind the character */
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components|Camera", meta = (AllowPrivateAccess = "true"))
@@ -132,7 +136,11 @@ protected:
     // Aiming
     void AimPressed();
     void AimReleased();
+    void CalculateAimOffsetPitch();
+    float CalculateSpeed() const;
     void AimOffset(float DeltaSeconds);
+
+    void SimProxiesTurn();    // Simulated proxies cannot smoothly turn in place, so we need to simulate it
 
     // Fire
     void FirePressed();
@@ -153,6 +161,17 @@ private:
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Combat", meta = (AllowPrivateAccess = "true"))
     UAnimMontage* HitReactMontage;
 
+    // Variable to tell the anim blueprint that the character should rotate the root bone (when moving the mouse to a big angle)
+    // This will happen only in server or autonomous proxy. Therefore we need this to blend poses by bool
+    bool bRotateRootBone = false;
+
+    // We need these to tell the clients to play the turn in place animation (because the simulated proxies cannot turn in place)
+    float TurnThreshold = 0.5f;
+    FRotator ProxyRotationLastFrame;
+    FRotator ProxyRotation;
+    float ProxyYaw;
+    float TimeSinceLastMovementReplication;
+
 public:
     /** Returns CameraBoom subobject **/
     FORCEINLINE USpringArmComponent* GetCameraBoom() const { return CameraBoom; }
@@ -162,6 +181,7 @@ public:
     FORCEINLINE float GetAimOffsetPitch() const { return AimOffset_Pitch; }
     FORCEINLINE ETurningInPlace GetTurningInPlace() const { return TurningInPlace; }
     FORCEINLINE FVector GetHitTarget() const { return Combat ? Combat->HitTarget : FVector(); }
+    FORCEINLINE bool ShouldRotateRootBone() const { return bRotateRootBone; }
 
     AWeapon* GetEquippedWeapon() const;
 };

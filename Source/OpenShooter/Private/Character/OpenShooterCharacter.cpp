@@ -116,8 +116,23 @@ void AOpenShooterCharacter::Tick(float DeltaSeconds)
 {
     Super::Tick(DeltaSeconds);
 
-    // Setting the aim offset
-    AimOffset(DeltaSeconds);
+    if (GetLocalRole() > ROLE_SimulatedProxy && IsLocallyControlled())    // authority or autonomous proxy, only locally controlled
+    {
+        // Setting the aim offset
+        AimOffset(DeltaSeconds);
+    }    // for simulated proxy it's done in OnRep_ReplicatedMovement which is run only when necessary
+    else
+    {
+        TimeSinceLastMovementReplication += DeltaSeconds;
+        // We keep track of this because if this value  reaches a certain amount, we force call OnRep_ReplicatedMovement
+        if (TimeSinceLastMovementReplication > 0.25f)
+        {
+            OnRep_ReplicatedMovement();
+        }
+
+        // we calculate the pitch at every frame
+        CalculateAimOffsetPitch();
+    }
 
     HideCameraIfCharacterClose();
 }
@@ -232,17 +247,27 @@ void AOpenShooterCharacter::PlayHitReactMontage() const
         return;
 
     UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
-    if (AnimInstance && FireWeaponMontage)
+    if (AnimInstance && HitReactMontage)
     {
-        AnimInstance->Montage_Play(FireWeaponMontage, 1.0f);
+        AnimInstance->Montage_Play(HitReactMontage, 1.0f);
         FName SectionName("FromFront");
-        AnimInstance->Montage_JumpToSection(SectionName, FireWeaponMontage);
+        AnimInstance->Montage_JumpToSection(SectionName, HitReactMontage);
     }
 }
 
 void AOpenShooterCharacter::MulticastHit_Implementation()
 {
     PlayHitReactMontage();
+}
+
+void AOpenShooterCharacter::OnRep_ReplicatedMovement()
+{
+    Super::OnRep_ReplicatedMovement();
+
+    // We need to run the simulated proxies' turn in place only when necessary instead of doing in tick (because tick is not
+    // fast enough)
+    SimProxiesTurn();
+    TimeSinceLastMovementReplication = 0.f;
 }
 
 void AOpenShooterCharacter::Move(const FInputActionValue& Value)
@@ -323,17 +348,38 @@ void AOpenShooterCharacter::AimReleased()
         Combat->SetAiming(false);
 }
 
+void AOpenShooterCharacter::CalculateAimOffsetPitch()
+{
+    AimOffset_Pitch = GetBaseAimRotation().Pitch;
+    // If the character is not locally controlled, the pitch and yaw values are packaged together by the CharacterMovememntComponent
+    // Therefore the pitch ends up being not in [-90, 90] range. We need to adjust it only if the character is not locally
+    // controlled
+    if (!IsLocallyControlled() && AimOffset_Pitch > 90.f)
+    {
+        // we re-map the pitch from [270, 360) to [-90, 0)
+        const FVector2D InRange(270.f, 360.f);
+        const FVector2D OutRange(-90.f, 0.f);
+        AimOffset_Pitch = FMath::GetMappedRangeValueClamped(InRange, OutRange, AimOffset_Pitch);
+    }
+}
+
+float AOpenShooterCharacter::CalculateSpeed() const
+{
+    FVector Velocity = GetVelocity();
+    Velocity.Z = 0;    // We only want the horizontal velocity
+    return Velocity.Size();
+}
+
 void AOpenShooterCharacter::AimOffset(float DeltaSeconds)
 {
     if (Combat && Combat->EquippedWeapon == nullptr)
         return;
-    FVector Velocity = GetVelocity();
-    Velocity.Z = 0;    // We only want the horizontal velocity
-    const float Speed = Velocity.Size();
+    const float Speed = CalculateSpeed();
     const bool bIsInAir = GetCharacterMovement()->IsFalling();
 
     if (Speed == 0 || !bIsInAir)    // standing still, not jumping
     {
+        bRotateRootBone = true;
         const FRotator CurrentAimRotation = FRotator(0, GetBaseAimRotation().Yaw, 0);
         const FRotator DeltaRotation =
             UKismetMathLibrary::NormalizedDeltaRotator(CurrentAimRotation, StartingAimRotation);    // the order were is important
@@ -350,23 +396,52 @@ void AOpenShooterCharacter::AimOffset(float DeltaSeconds)
     // If we are moving or in the air,
     if (Speed > 0.f || bIsInAir)
     {
+        bRotateRootBone = false;
         StartingAimRotation = FRotator(0, GetBaseAimRotation().Yaw, 0);
         AimOffset_Yaw = 0.f;                 // when moving or in the air, we don't want the aim offset to be applied
         bUseControllerRotationYaw = true;    // we want the controller to rotate the camera
     }
 
-    AimOffset_Pitch = GetBaseAimRotation().Pitch;
-    // If the character is not locally controlled, the pitch and yaw values are packaged together by the CharacterMovememntComponent
-    // Therefore the pitch ends up being not in [-90, 90] range. We need to adjust it only if the character is not locally
-    // controlled
-    if (!IsLocallyControlled() && AimOffset_Pitch > 90.f)
-    {
-        // we re-map the pitch from [270, 360) to [-90, 0)
-        const FVector2D InRange(270.f, 360.f);
-        const FVector2D OutRange(-90.f, 0.f);
-        AimOffset_Pitch = FMath::GetMappedRangeValueClamped(InRange, OutRange, AimOffset_Pitch);
-    }
+    CalculateAimOffsetPitch();
 }
+
+void AOpenShooterCharacter::SimProxiesTurn()
+{
+    if (Combat == nullptr || Combat->EquippedWeapon == nullptr)
+        return;
+
+    bRotateRootBone = false;
+
+    if (const float Speed = CalculateSpeed(); Speed > 0.f)
+    {
+        TurningInPlace = ETurningInPlace::ETIP_NotTurning;
+        return;
+    }
+
+    // At this point, the simulated proxies cannot turn in place, so we need to simulate it
+    ProxyRotationLastFrame = ProxyRotation;
+    ProxyRotation = GetActorRotation();
+    ProxyYaw = UKismetMathLibrary::NormalizedDeltaRotator(ProxyRotation, ProxyRotationLastFrame).Yaw;
+
+    if (FMath::Abs(ProxyYaw) > TurnThreshold)
+    {
+        if (ProxyYaw > TurnThreshold)
+        {
+            TurningInPlace = ETurningInPlace::ETIP_Right;
+        }
+        else if (ProxyYaw < -TurnThreshold)
+        {
+            TurningInPlace = ETurningInPlace::ETIP_Left;
+        }
+        else
+        {    // in between
+            TurningInPlace = ETurningInPlace::ETIP_NotTurning;
+        }
+        return;
+    }
+    TurningInPlace = ETurningInPlace::ETIP_NotTurning;    // not enough turn, so do not turn in place
+}
+
 void AOpenShooterCharacter::TurnInPlace(float DeltaSeconds)
 {
     if (AimOffset_Yaw > 90.f)
