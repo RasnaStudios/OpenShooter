@@ -38,6 +38,10 @@ public:
     bool IsAiming() const;
 
     void PlayFireMontage(bool bAiming) const;
+    void PlayHitReactMontage() const;
+
+    UFUNCTION(NetMulticast, Unreliable)
+    void MulticastHit();
 
 private:
     /** Camera boom positioning the camera behind the character */
@@ -94,7 +98,7 @@ private:
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components|Combat", meta = (AllowPrivateAccess = "true"))
     UCombatComponent* Combat;
 
-    void HideCameraIfCharacterClose();
+    void HideCameraIfCharacterClose() const;
 
     UPROPERTY(EditAnywhere, Category = "Components|Camera")
     float CameraHideDistanceThreshold = 200.f;
@@ -145,6 +149,9 @@ private:
 
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Combat", meta = (AllowPrivateAccess = "true"))
     UAnimMontage* FireWeaponMontage;
+
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Combat", meta = (AllowPrivateAccess = "true"))
+    UAnimMontage* HitReactMontage;
 
 public:
     /** Returns CameraBoom subobject **/
