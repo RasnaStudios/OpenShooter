@@ -108,9 +108,11 @@ void AOpenShooterCharacter::BeginPlay()
     Super::BeginPlay();
 
     // We set the health of the character to the max health
-    PlayerController = Cast<AOpenShooterPlayerController>(Controller);
-    if (PlayerController)
-        PlayerController->SetHUDHealth(Health, MaxHealth);
+    UpdateHUDHealth();
+
+    // We bind the OnTakeAnyDamage event to the ReceiveDamage function only for server
+    if (HasAuthority())
+        OnTakeAnyDamage.AddDynamic(this, &AOpenShooterCharacter::ReceiveDamage);
 }
 
 void AOpenShooterCharacter::PostInitializeComponents()
@@ -262,19 +264,6 @@ void AOpenShooterCharacter::PlayHitReactMontage() const
         FName SectionName("FromFront");
         AnimInstance->Montage_JumpToSection(SectionName, HitReactMontage);
     }
-}
-
-void AOpenShooterCharacter::MulticastHit_Implementation(FVector_NetQuantize HitLocationNormal)
-{
-    PlayHitReactMontage();
-
-    // DrawDebugSphere(GetWorld(), HitLocationNormal, 10.f, 12, FColor::Red, false, 1.f, 0, 1.f);
-    // DrawDebugLine(GetWorld(), HitLocationNormal, HitLocationNormal*100, FColor::Red, false, 1.f, 0, 1.f);
-
-    if (HitSound)
-        UGameplayStatics::PlaySoundAtLocation(this, HitSound, HitLocationNormal);
-    if (HitParticles)
-        UGameplayStatics::SpawnEmitterAtLocation(this, HitParticles, HitLocationNormal);
 }
 
 void AOpenShooterCharacter::OnRep_ReplicatedMovement()
@@ -538,6 +527,47 @@ void AOpenShooterCharacter::HideCameraIfCharacterClose() const
     }
 }
 
+void AOpenShooterCharacter::UpdateHUDHealth()
+{
+    PlayerController = PlayerController ? PlayerController : Cast<AOpenShooterPlayerController>(Controller);
+    if (PlayerController)
+        PlayerController->SetHUDHealth(Health, MaxHealth);
+}
+
+void AOpenShooterCharacter::PlayImpactEffects()
+{
+    if (!HitLocationNormal.IsZero())
+    {
+        if (HitSound)
+            UGameplayStatics::PlaySoundAtLocation(this, HitSound, HitLocationNormal);
+        if (HitParticles)
+            UGameplayStatics::SpawnEmitterAtLocation(this, HitParticles, HitLocationNormal);
+        HitLocationNormal = FVector::ZeroVector;
+    }
+}
+
 void AOpenShooterCharacter::OnRep_Health()
 {
+    // This will be called on the clients when the Health variable is updated on the server
+
+    // We update the health on the HUD
+    UpdateHUDHealth();
+    // We play the hit react montage
+    PlayHitReactMontage();
+    // We play the hit sound and particles using the HitLocationNormal which is set in
+    PlayImpactEffects();
+}
+
+void AOpenShooterCharacter::ReceiveDamage(
+    AActor* DamagedActor, float Damage, const UDamageType* DamageType, AController* InstigatorController, AActor* DamageCauser)
+{
+    Health = FMath::Clamp(Health - Damage, 0.f, MaxHealth);
+    // This will call the OnRep_Health function on the clients but we need to do the same things in the server
+
+    // We update the health on the HUD
+    UpdateHUDHealth();
+    // We play the hit react montage
+    PlayHitReactMontage();
+    // We play the hit sound and particles using the HitLocationNormal which is set in
+    PlayImpactEffects();
 }

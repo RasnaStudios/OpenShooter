@@ -30,6 +30,10 @@ protected:
     virtual void OnHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComponent,
         FVector NormalImpulse, const FHitResult& Hit);
 
+    // The damage that this projectile will deal (protected so child classes can access it)
+    UPROPERTY(EditAnywhere, Category = "Projectile|Stats")
+    float Damage = 20.f;
+
 private:
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Projectile|Componenets", meta = (AllowPrivateAccess = "true"))
     TObjectPtr<UBoxComponent> CollisionBox;
@@ -49,7 +53,6 @@ private:
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Projectile|Effects", meta = (AllowPrivateAccess = "true"))
     TObjectPtr<USoundCue> ImpactSound;
 
-    // To store the character that was hit and use it to spawn the impact effects
-    UPROPERTY(VisibleAnywhere)
-    AOpenShooterCharacter* HitCharacter;
+    bool bCharacterHit =
+        false;    // This is to prevent spawning impact particles and sounds when hitting a character and let the character do it
 };
