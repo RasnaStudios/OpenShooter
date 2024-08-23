@@ -48,8 +48,9 @@ protected:
     // We need this to show strafing/leaning animations on all the clients
     UFUNCTION()
     void OnRep_EquippedWeapon() const;
+    void Fire();
 
-    void Fire(bool bButtonPressed);
+    void FireButtonPressed(bool bButtonPressed);
 
     // This is necessary to replicate the sounds and visuals of the weapon firing
     UFUNCTION(Server, Reliable)
@@ -81,6 +82,8 @@ private:
 
     bool bFireButtonPressed;    // we don't replicate this because we could have automatic weapons, so it would be hard
     // to replicate the changes in the button press state. We use instead multicast RPCs
+
+    bool bCanFire = true;
 
     // = HUD and Crosshair =
 
@@ -128,4 +131,11 @@ private:
     float ZoomedInterpSpeed = 20.f;
 
     void InterpFOV(float DeltaSeconds);
+
+    // = Automatic FireButtonPressed =
+
+    FTimerHandle FireTimer;
+
+    void StartFireTimer();       // To start the timer
+    void FireTimerFinished();    // Callback called when the timer finishes
 };

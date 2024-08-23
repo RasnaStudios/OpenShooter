@@ -177,8 +177,9 @@ void AOpenShooterCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInp
         EnhancedInputComponent->BindAction(AimAction, ETriggerEvent::Started, this, &AOpenShooterCharacter::AimPressed);
         EnhancedInputComponent->BindAction(AimAction, ETriggerEvent::Completed, this, &AOpenShooterCharacter::AimReleased);
 
-        // Fire
+        // FireButtonPressed
         EnhancedInputComponent->BindAction(FireAction, ETriggerEvent::Started, this, &AOpenShooterCharacter::FirePressed);
+        EnhancedInputComponent->BindAction(FireAction, ETriggerEvent::Completed, this, &AOpenShooterCharacter::FireReleased);
     }
     else
     {
@@ -500,13 +501,13 @@ AWeapon* AOpenShooterCharacter::GetEquippedWeapon() const
 void AOpenShooterCharacter::FirePressed()
 {
     if (Combat)
-        Combat->Fire(true);
+        Combat->FireButtonPressed(true);
 }
 // ReSharper disable once CppMemberFunctionMayBeConst
 void AOpenShooterCharacter::FireReleased()
 {
     if (Combat)
-        Combat->Fire(false);
+        Combat->FireButtonPressed(false);
 }
 
 void AOpenShooterCharacter::HideCameraIfCharacterClose() const

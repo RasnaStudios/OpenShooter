@@ -74,7 +74,7 @@ private:
     UPROPERTY(EditAnywhere, Category = "Weapon Properties")
     TSubclassOf<ACasing> CasingClass;    // the bullet shell blueprint
 
-    // Fire Animation
+    // FireButtonPressed Animation
 public:
     virtual void Fire(const FVector& HitTarget);
 
@@ -101,9 +101,17 @@ private:
     UPROPERTY(EditAnywhere, Category = "Weapon Properties")
     float ZoomedInterpSpeed = 20.f;
 
+    UPROPERTY(EditAnywhere, Category = "Weapon Properties")
+    bool bAutomatic = false;
+
+    UPROPERTY(EditAnywhere, Category = "Weapon Properties")
+    float FireDelay = 0.15f;
+
 public:
     FORCEINLINE USphereComponent* GetAreaSphere() const { return AreaSphere; }
     FORCEINLINE UMeshComponent* GetMesh() const { return WeaponMesh; }
     FORCEINLINE float GetZoomedFOV() const { return ZoomedFOV; }
     FORCEINLINE float GetZoomedInterpSpeed() const { return ZoomedInterpSpeed; }
+    FORCEINLINE bool IsAutomatic() const { return bAutomatic; }
+    FORCEINLINE float GetFireDelay() const { return FireDelay; }
 };
