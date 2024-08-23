@@ -7,6 +7,7 @@
 
 #include "Projectile.generated.h"
 
+class AOpenShooterCharacter;
 class UBoxComponent;
 class UProjectileMovementComponent;
 class USoundCue;
@@ -47,4 +48,8 @@ private:
 
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Projectile|Effects", meta = (AllowPrivateAccess = "true"))
     TObjectPtr<USoundCue> ImpactSound;
+
+    // To store the character that was hit and use it to spawn the impact effects
+    UPROPERTY(VisibleAnywhere)
+    AOpenShooterCharacter* HitCharacter;
 };
