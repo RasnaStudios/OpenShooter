@@ -13,9 +13,11 @@
 #include "GameFramework/Controller.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "InputActionValue.h"
+#include "Kismet/GameplayStatics.h"
 #include "Kismet/KismetMathLibrary.h"
 #include "Net/UnrealNetwork.h"
 #include "OpenShooter.h"
+#include "Sound/SoundCue.h"
 #include "Weapon/Weapon.h"
 
 DEFINE_LOG_CATEGORY(LogTemplateCharacter);
@@ -255,9 +257,17 @@ void AOpenShooterCharacter::PlayHitReactMontage() const
     }
 }
 
-void AOpenShooterCharacter::MulticastHit_Implementation()
+void AOpenShooterCharacter::MulticastHit_Implementation(FVector_NetQuantize HitLocationNormal)
 {
     PlayHitReactMontage();
+
+    // DrawDebugSphere(GetWorld(), HitLocationNormal, 10.f, 12, FColor::Red, false, 1.f, 0, 1.f);
+    // DrawDebugLine(GetWorld(), HitLocationNormal, HitLocationNormal*100, FColor::Red, false, 1.f, 0, 1.f);
+
+    if (HitSound)
+        UGameplayStatics::PlaySoundAtLocation(this, HitSound, HitLocationNormal);
+    if (HitParticles)
+        UGameplayStatics::SpawnEmitterAtLocation(this, HitParticles, HitLocationNormal);
 }
 
 void AOpenShooterCharacter::OnRep_ReplicatedMovement()

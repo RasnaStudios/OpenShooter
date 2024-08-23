@@ -53,6 +53,10 @@ void AProjectile::BeginPlay()
 
 void AProjectile::Destroyed()
 {
+    if (HitCharacter != nullptr)
+        return;    // if we hit a character, we don't want to spawn the default impact effects
+    // We let the character spawn its own impact effects
+    // Otherwise, we spawn the default impact effects
     if (ImpactParticles)
         UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), ImpactParticles, GetActorTransform());
     if (ImpactSound)
@@ -64,9 +68,9 @@ void AProjectile::OnHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, U
     FVector NormalImpulse, const FHitResult& Hit)
 {
     // we cast other actor to OpenShooterCharacter
-    if (AOpenShooterCharacter* HitCharacter = Cast<AOpenShooterCharacter>(OtherActor))
+    if (HitCharacter = Cast<AOpenShooterCharacter>(OtherActor); HitCharacter)
     {
-        HitCharacter->MulticastHit();
+        HitCharacter->MulticastHit(Hit.ImpactPoint);
     }
 
     Destroy();

@@ -19,6 +19,7 @@ class UCameraComponent;
 class UInputMappingContext;
 class UInputAction;
 struct FInputActionValue;
+class USoundCue;
 
 DECLARE_LOG_CATEGORY_EXTERN(LogTemplateCharacter, Log, All);
 
@@ -41,7 +42,7 @@ public:
     void PlayHitReactMontage() const;
 
     UFUNCTION(NetMulticast, Unreliable)
-    void MulticastHit();
+    void MulticastHit(FVector_NetQuantize HitLocationNormal);
 
     // We need to run the simulated proxies' turn in place only when necessary instead of doing in tick (because tick is not fast
     // enough)
@@ -156,13 +157,19 @@ private:
     float InterpolatedAimOffsetYaw;    // To interpolate the aim offset yaw to 0 when turning in place
 
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Combat", meta = (AllowPrivateAccess = "true"))
-    UAnimMontage* FireWeaponMontage;
+    TObjectPtr<UAnimMontage> FireWeaponMontage;
 
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Combat", meta = (AllowPrivateAccess = "true"))
-    UAnimMontage* HitReactMontage;
+    TObjectPtr<UAnimMontage> HitReactMontage;
+
+    UPROPERTY(EditAnywhere, Category = "Combat")
+    TObjectPtr<USoundCue> HitSound;
+
+    UPROPERTY(EditAnywhere, Category = "Combat")
+    TObjectPtr<UParticleSystem> HitParticles;
 
     // Variable to tell the anim blueprint that the character should rotate the root bone (when moving the mouse to a big angle)
-    // This will happen only in server or autonomous proxy. Therefore we need this to blend poses by bool
+    // This will happen only in server or autonomous proxy. Therefore, we need this to blend poses by bool
     bool bRotateRootBone = false;
 
     // We need these to tell the clients to play the turn in place animation (because the simulated proxies cannot turn in place)
