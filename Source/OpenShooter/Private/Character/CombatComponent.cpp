@@ -93,38 +93,6 @@ void UCombatComponent::EquipWeapon(AWeapon* Weapon)
     UE_LOG(LogTemp, Warning, TEXT("Weapon Equipped!"));
 }
 
-void UCombatComponent::SetAiming(const bool bIsAiming)
-{
-    // we set this even if it won't be replicated immediately to the server
-    // this is because we want the client to know that the character is aiming
-    // so that the animation can be updated immediately.
-    // The server will eventually replicate this to all the clients
-    bAiming = bIsAiming;
-
-    // Then we call this function to tell the server to set the aiming state there
-    // if we would use only the one below, the client would have to wait for the server to replicate the variable
-    // to know that the character is aiming, which would cause a delay in the animation
-    ServerSetAiming(bIsAiming);
-
-    UE_LOG(LogTemp, Warning, TEXT("Setting Aiming %d"), bIsAiming);
-
-    // Set the walk speed based on the aiming state
-    if (Character)
-    {
-        Character->GetCharacterMovement()->MaxWalkSpeed = bIsAiming ? AimWalkSpeed : BaseWalkSpeed;
-    }
-}
-
-void UCombatComponent::ServerSetAiming_Implementation(const bool bIsAiming)
-{
-    // This is the function that the client calls to tell the server to set the aiming state
-    bAiming = bIsAiming;
-
-    // Set the walk speed based on the aiming state
-    if (Character)
-        Character->GetCharacterMovement()->MaxWalkSpeed = bIsAiming ? AimWalkSpeed : BaseWalkSpeed;
-}
-
 void UCombatComponent::OnRep_EquippedWeapon() const
 {
     if (EquippedWeapon && Character)
@@ -134,23 +102,52 @@ void UCombatComponent::OnRep_EquippedWeapon() const
     }
 }
 
-void UCombatComponent::Fire(const bool bButtonPressed)
+void UCombatComponent::FireButtonPressed(const bool bButtonPressed)
 {
     bFireButtonPressed = bButtonPressed;
     if (bFireButtonPressed)
     {
-        FHitResult HitResult;
-        TraceUnderCrosshair(HitResult);
-        // If we replace ServerFire with MulticastFire directly here, it will work only server and not on clients.
-        // The reason is that clients do not have authority to call multicast functions directly; only the server can do that.
-        ServerFire(HitResult.ImpactPoint);
-
-        // if we are shooting, we should increase the spread of the crosshair
-        if (EquippedWeapon)
-        {
-            CrosshairShootingFactor = FMath::Clamp(CrosshairShootingFactor + 0.75f, 0.f, 10.f);
-        }
+        Fire();
     }
+}
+
+void UCombatComponent::Fire()
+{
+    if (!bCanFire)
+        return;
+    bCanFire = false;    // we set this to false to prevent the player from firing too quickly
+    // We set it to true in the FireTimerFinished function
+
+    // If we replace ServerFire with MulticastFire directly here, it will work only server and not on clients.
+    // The reason is that clients do not have authority to call multicast functions directly; only the server can do that.
+    ServerFire(HitTarget);
+
+    // if we are shooting, we should increase the spread of the crosshair
+    if (EquippedWeapon)
+    {
+        CrosshairShootingFactor = FMath::Clamp(CrosshairShootingFactor + 0.75f, 0.f, 10.f);
+
+        // We start the timer to fire the next shot if the weapon is automatic
+        if (EquippedWeapon->IsAutomatic())
+            StartFireTimer();
+    }
+}
+
+void UCombatComponent::StartFireTimer()
+{
+    if (EquippedWeapon == nullptr || Character == nullptr)
+        return;
+
+    Character->GetWorldTimerManager().SetTimer(
+        FireTimer, this, &UCombatComponent::FireTimerFinished, EquippedWeapon->GetFireDelay(), false);
+}
+void UCombatComponent::FireTimerFinished()
+{
+    bCanFire = true;
+
+    // needs to check if we still have the fire button pressed
+    if (bFireButtonPressed && EquippedWeapon->IsAutomatic())
+        Fire();
 }
 
 void UCombatComponent::ServerFire_Implementation(const FVector_NetQuantize& TraceHitTarget)
@@ -274,7 +271,7 @@ void UCombatComponent::SetHUDCrosshair(float DeltaSeconds)
                 CrosshairOnTargetFactor = FMath::FInterpTo(CrosshairOnTargetFactor, 0.f, DeltaSeconds, 30.f);
             }
 
-            // If shooting, we should increase the spread (in Fire function we are increasing this value)
+            // If shooting, we should increase the spread (in FireButtonPressed function we are increasing this value)
             CrosshairShootingFactor = FMath::FInterpTo(CrosshairShootingFactor, 0.f, DeltaSeconds, 5.f);
 
             HUDPackage.CrosshairSpread = BaselineCrosshairSpread + CrosshairVelocityFactor + CrosshairInAirVelocityFactor -
@@ -305,4 +302,36 @@ void UCombatComponent::InterpFOV(const float DeltaSeconds)
     {
         Character->GetFollowCamera()->SetFieldOfView(CurrentFOV);
     }
+}
+
+void UCombatComponent::SetAiming(const bool bIsAiming)
+{
+    // we set this even if it won't be replicated immediately to the server
+    // this is because we want the client to know that the character is aiming
+    // so that the animation can be updated immediately.
+    // The server will eventually replicate this to all the clients
+    bAiming = bIsAiming;
+
+    // Then we call this function to tell the server to set the aiming state there
+    // if we would use only the one below, the client would have to wait for the server to replicate the variable
+    // to know that the character is aiming, which would cause a delay in the animation
+    ServerSetAiming(bIsAiming);
+
+    UE_LOG(LogTemp, Warning, TEXT("Setting Aiming %d"), bIsAiming);
+
+    // Set the walk speed based on the aiming state
+    if (Character)
+    {
+        Character->GetCharacterMovement()->MaxWalkSpeed = bIsAiming ? AimWalkSpeed : BaseWalkSpeed;
+    }
+}
+
+void UCombatComponent::ServerSetAiming_Implementation(const bool bIsAiming)
+{
+    // This is the function that the client calls to tell the server to set the aiming state
+    bAiming = bIsAiming;
+
+    // Set the walk speed based on the aiming state
+    if (Character)
+        Character->GetCharacterMovement()->MaxWalkSpeed = bIsAiming ? AimWalkSpeed : BaseWalkSpeed;
 }

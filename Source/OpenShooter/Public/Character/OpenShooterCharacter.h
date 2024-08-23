@@ -85,7 +85,7 @@ private:
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input", meta = (AllowPrivateAccess = "true"))
     UInputAction* AimAction;
 
-    /** Fire Input Action */
+    /** FireButtonPressed Input Action */
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input", meta = (AllowPrivateAccess = "true"))
     UInputAction* FireAction;
 
@@ -143,7 +143,7 @@ protected:
 
     void SimProxiesTurn();    // Simulated proxies cannot smoothly turn in place, so we need to simulate it
 
-    // Fire
+    // FireButtonPressed
     void FirePressed();
     void FireReleased();
 
