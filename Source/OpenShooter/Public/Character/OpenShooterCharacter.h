@@ -100,8 +100,14 @@ private:
     UFUNCTION()
     void OnRep_OverlappingWeapon(const AWeapon* LastWeapon) const;
 
+    // Main attributes
+
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components|Combat", meta = (AllowPrivateAccess = "true"))
     UCombatComponent* Combat;
+
+    AOpenShooterPlayerController* PlayerController;
+
+    // Camera Hiding
 
     void HideCameraIfCharacterClose() const;
 

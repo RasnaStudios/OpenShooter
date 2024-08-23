@@ -4,6 +4,7 @@
 
 #include "Camera/CameraComponent.h"
 #include "Character/CombatComponent.h"
+#include "Character/OpenShooterPlayerController.h"
 #include "Components/CapsuleComponent.h"
 #include "Components/WidgetComponent.h"
 #include "Engine/LocalPlayer.h"
@@ -105,15 +106,18 @@ void AOpenShooterCharacter::BeginPlay()
 {
     // Call the base class
     Super::BeginPlay();
+
+    // We set the health of the character to the max health
+    PlayerController = Cast<AOpenShooterPlayerController>(Controller);
+    if (PlayerController)
+        PlayerController->SetHUDHealth(Health, MaxHealth);
 }
 
 void AOpenShooterCharacter::PostInitializeComponents()
 {
     Super::PostInitializeComponents();
     if (Combat)
-    {
         Combat->Character = this;
-    }
 }
 
 void AOpenShooterCharacter::Tick(float DeltaSeconds)
@@ -147,10 +151,10 @@ void AOpenShooterCharacter::Tick(float DeltaSeconds)
 void AOpenShooterCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
     // Add Input Mapping Context
-    if (APlayerController* PlayerController = Cast<APlayerController>(GetController()))
+    if (APlayerController* BasePlayerController = Cast<APlayerController>(GetController()))
     {
         if (UEnhancedInputLocalPlayerSubsystem* Subsystem =
-                ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PlayerController->GetLocalPlayer()))
+                ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(BasePlayerController->GetLocalPlayer()))
         {
             Subsystem->AddMappingContext(DefaultMappingContext, 0);
         }
@@ -385,7 +389,7 @@ float AOpenShooterCharacter::CalculateSpeed() const
 
 void AOpenShooterCharacter::AimOffset(float DeltaSeconds)
 {
-    if (Combat && Combat->EquippedWeapon == nullptr)
+    if (Combat == nullptr || Combat->EquippedWeapon == nullptr)
         return;
     const float Speed = CalculateSpeed();
     const bool bIsInAir = GetCharacterMovement()->IsFalling();
@@ -502,13 +506,13 @@ AWeapon* AOpenShooterCharacter::GetEquippedWeapon() const
 // ReSharper disable once CppMemberFunctionMayBeConst
 void AOpenShooterCharacter::FirePressed()
 {
-    if (Combat)
+    if (Combat && Combat->EquippedWeapon)    // necessary to check if weapon is equipped otherwise we end up in a broken state
         Combat->FireButtonPressed(true);
 }
 // ReSharper disable once CppMemberFunctionMayBeConst
 void AOpenShooterCharacter::FireReleased()
 {
-    if (Combat)
+    if (Combat)    // even if weapon is not equipped we need to set the button as not pressed
         Combat->FireButtonPressed(false);
 }
 

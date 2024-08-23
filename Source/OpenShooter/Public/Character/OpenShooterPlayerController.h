@@ -7,6 +7,7 @@
 
 #include "OpenShooterPlayerController.generated.h"
 
+class AOpenShooterHUD;
 /**
  *
  */
@@ -14,4 +15,13 @@ UCLASS()
 class OPENSHOOTER_API AOpenShooterPlayerController : public APlayerController
 {
     GENERATED_BODY()
+public:
+    AOpenShooterHUD* HUD;
+
+    void SetHUDHealth(float Health, float MaxHealth);
+
+protected:
+    virtual void BeginPlay() override;
+
+private:
 };
