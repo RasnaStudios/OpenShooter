@@ -201,15 +201,8 @@ void UCombatComponent::TraceUnderCrosshair(FHitResult& HitResult)
         QueryParams.AddIgnoredActor(EquippedWeapon);
         GetWorld()->LineTraceSingleByChannel(HitResult, Start, End, ECollisionChannel::ECC_Visibility, QueryParams);
 
-        // Color the crosshair red if we can interact with the object (aiming at a character)
-        if (HitResult.GetActor() && HitResult.GetActor()->Implements<UInteractWithCrosshairInterface>())
-        {
-            HUDPackage.CrosshairColor = FLinearColor::Red;
-        }
-        else
-        {
-            HUDPackage.CrosshairColor = FLinearColor::White;
-        }
+        // We set this, so we can change the spread and the color of the crosshair
+        OnTarget = HitResult.GetActor() && HitResult.GetActor()->Implements<UInteractWithCrosshairInterface>();
     }
 }
 
@@ -262,18 +255,30 @@ void UCombatComponent::SetHUDCrosshair(float DeltaSeconds)
             // If aiming, we should decrease the spread
             if (bAiming)
             {
-                CrosshairAimFactor = FMath::FInterpTo(CrosshairAimFactor, 0.58f, DeltaSeconds, 30.f);
+                CrosshairAimFactor = FMath::FInterpTo(CrosshairAimFactor, 0.4f, DeltaSeconds, 30.f);
             }
             else
             {
                 CrosshairAimFactor = FMath::FInterpTo(CrosshairAimFactor, 0.f, DeltaSeconds, 30.f);
             }
 
+            // Color the crosshair red if we can interact with the object (aiming at a character)
+            if (OnTarget)
+            {
+                HUDPackage.CrosshairColor = FLinearColor::Red;
+                CrosshairOnTargetFactor = FMath::FInterpTo(CrosshairOnTargetFactor, 0.2f, DeltaSeconds, 30.f);
+            }
+            else
+            {
+                HUDPackage.CrosshairColor = FLinearColor::White;
+                CrosshairOnTargetFactor = FMath::FInterpTo(CrosshairOnTargetFactor, 0.f, DeltaSeconds, 30.f);
+            }
+
             // If shooting, we should increase the spread (in Fire function we are increasing this value)
             CrosshairShootingFactor = FMath::FInterpTo(CrosshairShootingFactor, 0.f, DeltaSeconds, 5.f);
 
             HUDPackage.CrosshairSpread = BaselineCrosshairSpread + CrosshairVelocityFactor + CrosshairInAirVelocityFactor -
-                                         CrosshairAimFactor + CrosshairShootingFactor;
+                                         CrosshairAimFactor - CrosshairOnTargetFactor + CrosshairShootingFactor;
             HUD->SetHUDPackage(HUDPackage);
         }
     }
