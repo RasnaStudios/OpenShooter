@@ -106,9 +106,14 @@ private:
     UPROPERTY(EditAnywhere, Category = "HUD")
     float CrosshairShootingFactor;
 
+    // Crosshair spreading when shooting
+    UPROPERTY(EditAnywhere, Category = "HUD")
+    float CrosshairOnTargetFactor;
+
     // The point where the crosshair is pointing, used for correcting the right hand rotation to point towards the crosshair
     // (Done in the animation blueprint)
     FVector HitTarget;
+    bool OnTarget;    // if the crosshair is on a enemy target
 
     // = Aim and FOV =
     UPROPERTY(EditAnywhere, Category = "Combat")
