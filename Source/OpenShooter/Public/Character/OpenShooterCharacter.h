@@ -41,8 +41,8 @@ public:
     void PlayFireMontage(bool bAiming) const;
     void PlayHitReactMontage() const;
 
-    UFUNCTION(NetMulticast, Unreliable)
-    void MulticastHit(FVector_NetQuantize HitLocationNormal);
+    // To store the hit location and normal for the hit react animation. Set in
+    FVector_NetQuantize HitLocationNormal;
 
     // We need to run the simulated proxies' turn in place only when necessary instead of doing in tick (because tick is not fast
     // enough)
@@ -110,11 +110,15 @@ private:
     // Camera Hiding
 
     void HideCameraIfCharacterClose() const;
+    void UpdateHUDHealth();
+    void PlayImpactEffects();
 
     UPROPERTY(EditAnywhere, Category = "Components|Camera")
     float CameraHideDistanceThreshold = 200.f;
 
     // Player Health
+
+    // This will be called on the clients when the Health variable is updated on the server
     UFUNCTION()
     void OnRep_Health();
 
@@ -123,6 +127,11 @@ private:
 
     UPROPERTY(ReplicatedUsing = OnRep_Health, VisibleAnywhere, Category = "Player Stats")
     float Health = MaxHealth;
+
+    UFUNCTION()    // This function is bound to the OnTakeAnyDamage event in BeginPlay. It is called when the ProjectileBullet calls
+                   // ApplyDamage to the character
+    void ReceiveDamage(
+        AActor* DamagedActor, float Damage, const UDamageType* DamageType, AController* InstigatorController, AActor* DamageCauser);
 
 protected:
     // APawn interface
@@ -205,6 +214,7 @@ public:
     FORCEINLINE ETurningInPlace GetTurningInPlace() const { return TurningInPlace; }
     FORCEINLINE FVector GetHitTarget() const { return Combat ? Combat->HitTarget : FVector(); }
     FORCEINLINE bool ShouldRotateRootBone() const { return bRotateRootBone; }
+    FORCEINLINE void SetHitImpactPoint(const FVector_NetQuantize& ImpactPoint) { HitLocationNormal = ImpactPoint; }
 
     AWeapon* GetEquippedWeapon() const;
 };
