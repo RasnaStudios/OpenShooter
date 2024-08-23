@@ -97,6 +97,8 @@ void AOpenShooterCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>
     // We need to replicate the OverlappingWeapon so that the client can show the pickup widget, but only the owner can interact
     // with it so the widget is only shown on the client that owns the character
     DOREPLIFETIME_CONDITION(AOpenShooterCharacter, OverlappingWeapon, COND_OwnerOnly);
+
+    DOREPLIFETIME(AOpenShooterCharacter, Health);
 }
 
 void AOpenShooterCharacter::BeginPlay()
@@ -530,4 +532,8 @@ void AOpenShooterCharacter::HideCameraIfCharacterClose() const
             Combat->EquippedWeapon->GetMesh()->bOwnerNoSee = false;
         }
     }
+}
+
+void AOpenShooterCharacter::OnRep_Health()
+{
 }

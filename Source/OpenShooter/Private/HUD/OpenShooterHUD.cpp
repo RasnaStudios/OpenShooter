@@ -2,6 +2,9 @@
 
 #include "HUD/OpenShooterHUD.h"
 
+#include "Blueprint/UserWidget.h"
+#include "HUD/CharacterOverlay.h"
+
 void AOpenShooterHUD::DrawHUD()
 {
     Super::DrawHUD();
@@ -38,6 +41,24 @@ void AOpenShooterHUD::DrawHUD()
             const FVector2D Spread(0.f, SpreadScaled);
             DrawCrosshair(HUDPackage.CrosshairsBottom, ViewportCenter, Spread, HUDPackage.CrosshairColor);
         }
+    }
+}
+
+void AOpenShooterHUD::BeginPlay()
+{
+    Super::BeginPlay();
+
+    AddCharacterOverlay();
+}
+
+void AOpenShooterHUD::AddCharacterOverlay()
+{
+    APlayerController* PlayerController = GetOwningPlayerController();
+    if (PlayerController && CharacterOverlayClass)
+    {
+        CharacterOverlay = CreateWidget<UCharacterOverlay>(PlayerController, CharacterOverlayClass);
+        if (CharacterOverlay)
+            CharacterOverlay->AddToViewport();
     }
 }
 
