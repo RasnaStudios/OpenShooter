@@ -7,6 +7,8 @@
 
 #include "OpenShooterHUD.generated.h"
 
+class UCharacterOverlay;
+
 USTRUCT(BlueprintType)
 struct FHUDPackage
 {
@@ -28,6 +30,17 @@ class OPENSHOOTER_API AOpenShooterHUD : public AHUD
 
 public:
     virtual void DrawHUD() override;
+
+    // The character overlay widget
+    UCharacterOverlay* CharacterOverlay;
+
+    UPROPERTY(EditAnywhere, Category = "Widgets")
+    TSubclassOf<UUserWidget> CharacterOverlayClass;
+
+protected:
+    virtual void BeginPlay() override;
+
+    void AddCharacterOverlay();
 
 private:
     FHUDPackage HUDPackage;

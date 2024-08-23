@@ -108,6 +108,16 @@ private:
     UPROPERTY(EditAnywhere, Category = "Components|Camera")
     float CameraHideDistanceThreshold = 200.f;
 
+    // Player Health
+    UFUNCTION()
+    void OnRep_Health();
+
+    UPROPERTY(EditAnywhere, Category = "Player Stats")
+    float MaxHealth = 100.f;
+
+    UPROPERTY(ReplicatedUsing = OnRep_Health, VisibleAnywhere, Category = "Player Stats")
+    float Health = MaxHealth;
+
 protected:
     // APawn interface
     virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
