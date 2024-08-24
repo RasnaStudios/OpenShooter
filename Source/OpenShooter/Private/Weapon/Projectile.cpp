@@ -38,8 +38,6 @@ void AProjectile::BeginPlay()
     // To see where the projectile is spawned. It should spawn at the muzzle of the gun, not at the center
     // DrawDebugSphere(GetWorld(), GetActorLocation(), 10.f, 12, FColor::Red, true, 5.f, 0, 1.f);
 
-    bCharacterHit = false;    // reset this otherwise it will always be true. It's set to true in the OnHit function
-
     if (Tracer)
     {
         TracerComponent =
@@ -53,30 +51,28 @@ void AProjectile::BeginPlay()
     }
 }
 
-void AProjectile::Destroyed()
+void AProjectile::MulticastSpawnEnvironmentHitParticles_Implementation()
 {
-    // We let the character spawn its own impact effects in the OnHit function
-    if (bCharacterHit)
-        return;
-    // Otherwise, we spawn the default impact effects
     if (ImpactParticles)
         UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), ImpactParticles, GetActorTransform());
     if (ImpactSound)
         UGameplayStatics::PlaySoundAtLocation(GetWorld(), ImpactSound, GetActorLocation());
-    Super::Destroyed();
 }
 
 void AProjectile::OnHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComponent,
     FVector NormalImpulse, const FHitResult& Hit)
 {
-    // We need this to set the HitCharacter so that we can spawn the impact effects
     if (AOpenShooterCharacter* Character = Cast<AOpenShooterCharacter>(OtherActor))
     {
-        Character->SetHitImpactPoint(Hit.ImpactPoint);
-        bCharacterHit = true;
+        Character->MulticastPlayImpactEffects(Hit.ImpactPoint);
     }
-
-    Destroy();
+    else
+    {
+        MulticastSpawnEnvironmentHitParticles();
+    }
+    SetLifeSpan(1.f);
+    SetActorEnableCollision(false);
+    SetActorHiddenInGame(true);
 }
 
 void AProjectile::Tick(float DeltaTime)
