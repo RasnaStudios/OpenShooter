@@ -41,8 +41,10 @@ public:
     void PlayFireMontage(bool bAiming) const;
     void PlayHitReactMontage() const;
 
-    // To store the hit location and normal for the hit react animation. Set in
-    FVector_NetQuantize HitLocationNormal;
+    UFUNCTION(NetMulticast, Unreliable)    // Easiest implementation for the client to play the impact effects
+    void MulticastPlayImpactEffects(FVector_NetQuantize ImpactPoint);
+
+    void OnRep_HitLocation();
 
     // We need to run the simulated proxies' turn in place only when necessary instead of doing in tick (because tick is not fast
     // enough)
@@ -94,7 +96,7 @@ private:
     UWidgetComponent* OverHeadWidget;
 
     // The weapon that the character is overlapping with
-    UPROPERTY(VisibleAnywhere, ReplicatedUsing = OnRep_OverlappingWeapon, Category = "Weapon")
+    UPROPERTY(ReplicatedUsing = OnRep_OverlappingWeapon, VisibleAnywhere, Category = "Weapon")
     AWeapon* OverlappingWeapon;
 
     UFUNCTION()
@@ -111,7 +113,6 @@ private:
 
     void HideCameraIfCharacterClose() const;
     void UpdateHUDHealth();
-    void PlayImpactEffects();
 
     UPROPERTY(EditAnywhere, Category = "Components|Camera")
     float CameraHideDistanceThreshold = 200.f;
@@ -214,7 +215,6 @@ public:
     FORCEINLINE ETurningInPlace GetTurningInPlace() const { return TurningInPlace; }
     FORCEINLINE FVector GetHitTarget() const { return Combat ? Combat->HitTarget : FVector(); }
     FORCEINLINE bool ShouldRotateRootBone() const { return bRotateRootBone; }
-    FORCEINLINE void SetHitImpactPoint(const FVector_NetQuantize& ImpactPoint) { HitLocationNormal = ImpactPoint; }
 
     AWeapon* GetEquippedWeapon() const;
 };

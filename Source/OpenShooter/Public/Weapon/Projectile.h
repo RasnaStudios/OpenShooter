@@ -24,8 +24,6 @@ public:
 protected:
     virtual void BeginPlay() override;
 
-    virtual void Destroyed() override;
-
     UFUNCTION()    // all the callbacks that we bind to overlaps and hit events must be UFUNCTIONs
     virtual void OnHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComponent,
         FVector NormalImpulse, const FHitResult& Hit);
@@ -53,6 +51,6 @@ private:
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Projectile|Effects", meta = (AllowPrivateAccess = "true"))
     TObjectPtr<USoundCue> ImpactSound;
 
-    bool bCharacterHit =
-        false;    // This is to prevent spawning impact particles and sounds when hitting a character and let the character do it
+    UFUNCTION(NetMulticast, Unreliable)
+    void MulticastSpawnEnvironmentHitParticles();
 };

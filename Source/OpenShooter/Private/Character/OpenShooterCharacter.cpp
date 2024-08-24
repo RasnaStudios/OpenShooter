@@ -534,16 +534,12 @@ void AOpenShooterCharacter::UpdateHUDHealth()
         PlayerController->SetHUDHealth(Health, MaxHealth);
 }
 
-void AOpenShooterCharacter::PlayImpactEffects()
+void AOpenShooterCharacter::MulticastPlayImpactEffects_Implementation(FVector_NetQuantize ImpactPoint)
 {
-    if (!HitLocationNormal.IsZero())
-    {
-        if (HitSound)
-            UGameplayStatics::PlaySoundAtLocation(this, HitSound, HitLocationNormal);
-        if (HitParticles)
-            UGameplayStatics::SpawnEmitterAtLocation(this, HitParticles, HitLocationNormal);
-        HitLocationNormal = FVector::ZeroVector;
-    }
+    if (HitSound)
+        UGameplayStatics::PlaySoundAtLocation(this, HitSound, ImpactPoint);
+    if (HitParticles)
+        UGameplayStatics::SpawnEmitterAtLocation(this, HitParticles, ImpactPoint);
 }
 
 void AOpenShooterCharacter::OnRep_Health()
@@ -554,8 +550,6 @@ void AOpenShooterCharacter::OnRep_Health()
     UpdateHUDHealth();
     // We play the hit react montage
     PlayHitReactMontage();
-    // We play the hit sound and particles using the HitLocationNormal which is set in
-    PlayImpactEffects();
 }
 
 void AOpenShooterCharacter::ReceiveDamage(
@@ -568,6 +562,4 @@ void AOpenShooterCharacter::ReceiveDamage(
     UpdateHUDHealth();
     // We play the hit react montage
     PlayHitReactMontage();
-    // We play the hit sound and particles using the HitLocationNormal which is set in
-    PlayImpactEffects();
 }
