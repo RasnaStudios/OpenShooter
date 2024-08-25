@@ -50,6 +50,12 @@ public:
     // enough)
     virtual void OnRep_ReplicatedMovement() override;
 
+    // Elimination can be done in multicast (but reliable) because it's only setting animation behaviour
+    UFUNCTION(NetMulticast, Reliable)
+    void MulticastEliminate();
+
+    void PlayEliminationMontage() const;
+
 private:
     /** Camera boom positioning the camera behind the character */
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components|Camera", meta = (AllowPrivateAccess = "true"))
@@ -129,10 +135,12 @@ private:
     UPROPERTY(ReplicatedUsing = OnRep_Health, VisibleAnywhere, Category = "Player Stats")
     float Health = MaxHealth;
 
-    UFUNCTION()    // This function is bound to the OnTakeAnyDamage event in BeginPlay. It is called when the ProjectileBullet calls
-                   // ApplyDamage to the character
+    UFUNCTION()    // Bound to OnTakeAnyDamage event in BeginPlay. It is called when the ProjectileBullet calls ApplyDamage to char
     void ReceiveDamage(
         AActor* DamagedActor, float Damage, const UDamageType* DamageType, AController* InstigatorController, AActor* DamageCauser);
+
+    // This is necessary in the for the animation blueprint ot know when to skip the other slots (like weapon, fabrik, etc.)
+    bool bEliminated = false;
 
 protected:
     // APawn interface
@@ -188,6 +196,9 @@ private:
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Combat", meta = (AllowPrivateAccess = "true"))
     TObjectPtr<UAnimMontage> HitReactMontage;
 
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Combat", meta = (AllowPrivateAccess = "true"))
+    TObjectPtr<UAnimMontage> EliminationMontage;
+
     UPROPERTY(EditAnywhere, Category = "Combat")
     TObjectPtr<USoundCue> HitSound;
 
@@ -215,6 +226,7 @@ public:
     FORCEINLINE ETurningInPlace GetTurningInPlace() const { return TurningInPlace; }
     FORCEINLINE FVector GetHitTarget() const { return Combat ? Combat->HitTarget : FVector(); }
     FORCEINLINE bool ShouldRotateRootBone() const { return bRotateRootBone; }
+    FORCEINLINE bool IsEliminated() const { return bEliminated; }
 
     AWeapon* GetEquippedWeapon() const;
 };

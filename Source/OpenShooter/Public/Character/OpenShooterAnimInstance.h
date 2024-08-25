@@ -79,4 +79,8 @@ private:
 
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Movement", meta = (AllowPrivateAccess = "true"))
     bool bRotateRootBone;
+
+    // To distinguish between the EliminationSlot from StandingIdle state machine or the regula Unequipped/Equipped state
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Movement", meta = (AllowPrivateAccess = "true"))
+    bool bEliminated;
 };

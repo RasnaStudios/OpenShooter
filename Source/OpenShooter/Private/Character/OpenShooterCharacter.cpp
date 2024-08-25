@@ -18,6 +18,7 @@
 #include "Kismet/KismetMathLibrary.h"
 #include "Net/UnrealNetwork.h"
 #include "OpenShooter.h"
+#include "OpenShooterGameMode.h"
 #include "Sound/SoundCue.h"
 #include "Weapon/Weapon.h"
 
@@ -274,6 +275,18 @@ void AOpenShooterCharacter::OnRep_ReplicatedMovement()
     // fast enough)
     SimProxiesTurn();
     TimeSinceLastMovementReplication = 0.f;
+}
+
+void AOpenShooterCharacter::MulticastEliminate_Implementation()
+{
+    bEliminated = true;    // Enables the elimination slot (from standing idle state machine)
+    PlayEliminationMontage();
+}
+
+void AOpenShooterCharacter::PlayEliminationMontage() const
+{
+    if (UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance(); AnimInstance && EliminationMontage)
+        AnimInstance->Montage_Play(EliminationMontage, 1.0f);
 }
 
 void AOpenShooterCharacter::Move(const FInputActionValue& Value)
@@ -546,10 +559,10 @@ void AOpenShooterCharacter::OnRep_Health()
 {
     // This will be called on the clients when the Health variable is updated on the server
 
-    // We update the health on the HUD
-    UpdateHUDHealth();
     // We play the hit react montage
     PlayHitReactMontage();
+    // We update the health on the HUD
+    UpdateHUDHealth();
 }
 
 void AOpenShooterCharacter::ReceiveDamage(
@@ -558,8 +571,19 @@ void AOpenShooterCharacter::ReceiveDamage(
     Health = FMath::Clamp(Health - Damage, 0.f, MaxHealth);
     // This will call the OnRep_Health function on the clients but we need to do the same things in the server
 
-    // We update the health on the HUD
-    UpdateHUDHealth();
     // We play the hit react montage
     PlayHitReactMontage();
+    // We update the health on the HUD
+    UpdateHUDHealth();
+
+    // We need to eliminate the player if the health is 0
+    if (Health == 0)
+    {
+        if (AOpenShooterGameMode* GameMode = GetWorld()->GetAuthGameMode<AOpenShooterGameMode>())
+        {
+            PlayerController = PlayerController == nullptr ? Cast<AOpenShooterPlayerController>(Controller) : PlayerController;
+            AOpenShooterPlayerController* AttackerController = Cast<AOpenShooterPlayerController>(InstigatorController);
+            GameMode->PlayerEliminated(this, PlayerController, AttackerController);    // ptr checks are done inside this function
+        }
+    }
 }

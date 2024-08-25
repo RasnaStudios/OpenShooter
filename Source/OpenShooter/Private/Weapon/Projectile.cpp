@@ -70,6 +70,7 @@ void AProjectile::OnHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, U
     {
         MulticastSpawnEnvironmentHitParticles();
     }
+    // This is necessary to avoid the projectile to get destroyed before the multicast is called
     SetLifeSpan(1.f);
     SetActorEnableCollision(false);
     SetActorHiddenInGame(true);
