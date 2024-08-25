@@ -90,6 +90,9 @@ AOpenShooterCharacter::AOpenShooterCharacter()
     // Set net update frequency
     NetUpdateFrequency = 66.0f;
     MinNetUpdateFrequency = 33.0f;
+
+    // Make the character always spawn even if colliding with other characters in the same spawn point
+    SpawnCollisionHandlingMethod = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
 }
 
 void AOpenShooterCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
@@ -275,18 +278,6 @@ void AOpenShooterCharacter::OnRep_ReplicatedMovement()
     // fast enough)
     SimProxiesTurn();
     TimeSinceLastMovementReplication = 0.f;
-}
-
-void AOpenShooterCharacter::MulticastEliminate_Implementation()
-{
-    bEliminated = true;    // Enables the elimination slot (from standing idle state machine)
-    PlayEliminationMontage();
-}
-
-void AOpenShooterCharacter::PlayEliminationMontage() const
-{
-    if (UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance(); AnimInstance && EliminationMontage)
-        AnimInstance->Montage_Play(EliminationMontage, 1.0f);
 }
 
 void AOpenShooterCharacter::Move(const FInputActionValue& Value)
@@ -577,7 +568,7 @@ void AOpenShooterCharacter::ReceiveDamage(
     UpdateHUDHealth();
 
     // We need to eliminate the player if the health is 0
-    if (Health == 0)
+    if (Health <= 0.1)
     {
         if (AOpenShooterGameMode* GameMode = GetWorld()->GetAuthGameMode<AOpenShooterGameMode>())
         {
@@ -586,4 +577,28 @@ void AOpenShooterCharacter::ReceiveDamage(
             GameMode->PlayerEliminated(this, PlayerController, AttackerController);    // ptr checks are done inside this function
         }
     }
+}
+
+void AOpenShooterCharacter::Eliminate()
+{
+    MulticastEliminate();
+    GetWorldTimerManager().SetTimer(EliminationTimer, this, &AOpenShooterCharacter::EliminationFinished, EliminationDelay);
+}
+
+void AOpenShooterCharacter::MulticastEliminate_Implementation()
+{
+    bEliminated = true;    // Enables the elimination slot (from standing idle state machine)
+    PlayEliminationMontage();
+}
+
+void AOpenShooterCharacter::PlayEliminationMontage() const
+{
+    if (UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance(); AnimInstance && EliminationMontage)
+        AnimInstance->Montage_Play(EliminationMontage, 1.0f);
+}
+
+void AOpenShooterCharacter::EliminationFinished()
+{
+    if (AOpenShooterGameMode* GameMode = GetWorld()->GetAuthGameMode<AOpenShooterGameMode>())
+        GameMode->RequestRespawn(this, PlayerController);
 }

@@ -19,4 +19,6 @@ class AOpenShooterGameMode : public AGameModeBase
 public:
     virtual void PlayerEliminated(AOpenShooterCharacter* EliminatedCharacter, AOpenShooterPlayerController* VictimController,
         AOpenShooterPlayerController* AttackerController);
+
+    virtual void RequestRespawn(ACharacter* EliminatedCharacter, AOpenShooterPlayerController* PlayerController);
 };
