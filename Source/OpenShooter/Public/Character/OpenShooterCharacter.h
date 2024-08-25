@@ -44,16 +44,11 @@ public:
     UFUNCTION(NetMulticast, Unreliable)    // Easiest implementation for the client to play the impact effects
     void MulticastPlayImpactEffects(FVector_NetQuantize ImpactPoint);
 
-    void OnRep_HitLocation();
-
     // We need to run the simulated proxies' turn in place only when necessary instead of doing in tick (because tick is not fast
     // enough)
     virtual void OnRep_ReplicatedMovement() override;
 
-    // Elimination can be done in multicast (but reliable) because it's only setting animation behaviour
-    UFUNCTION(NetMulticast, Reliable)
-    void MulticastEliminate();
-
+    void Eliminate();
     void PlayEliminationMontage() const;
 
 private:
@@ -141,6 +136,17 @@ private:
 
     // This is necessary in the for the animation blueprint ot know when to skip the other slots (like weapon, fabrik, etc.)
     bool bEliminated = false;
+
+    // Elimination can be done in multicast (but reliable) because it's only setting animation behaviour
+    UFUNCTION(NetMulticast, Reliable)
+    void MulticastEliminate();
+
+    FTimerHandle EliminationTimer;
+
+    UPROPERTY(EditDefaultsOnly, Category = "Combat")    // Edit only in the default character (not in the instances)
+    float EliminationDelay = 3.0f;
+
+    void EliminationFinished();
 
 protected:
     // APawn interface
