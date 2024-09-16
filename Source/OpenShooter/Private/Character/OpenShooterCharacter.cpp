@@ -602,6 +602,16 @@ void AOpenShooterCharacter::MulticastEliminate_Implementation()
         DynamicDissolveMaterialInstance->SetScalarParameterValue(TEXT("Glow"), 200.f);
         StartDissolve();
     }
+
+    // Disable character movement
+    GetCharacterMovement()->DisableMovement();
+    GetCharacterMovement()->StopMovementImmediately();
+    if (PlayerController)
+        DisableInput(PlayerController);
+
+    // Disable collision
+    GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+    GetMesh()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 }
 
 void AOpenShooterCharacter::PlayEliminationMontage() const
