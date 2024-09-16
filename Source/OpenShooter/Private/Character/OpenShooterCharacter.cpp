@@ -93,6 +93,9 @@ AOpenShooterCharacter::AOpenShooterCharacter()
 
     // Make the character always spawn even if colliding with other characters in the same spawn point
     SpawnCollisionHandlingMethod = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
+
+    // Dissolve effect when killed
+    DissolveTimeline = CreateDefaultSubobject<UTimelineComponent>(TEXT("DissolveTimeline"));
 }
 
 void AOpenShooterCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
@@ -589,6 +592,16 @@ void AOpenShooterCharacter::MulticastEliminate_Implementation()
 {
     bEliminated = true;    // Enables the elimination slot (from standing idle state machine)
     PlayEliminationMontage();
+
+    // We get the material of the mesh and set the dissolve parameter to the initial value (0).
+    if (GetMesh()->GetMaterial(0))
+    {
+        DynamicDissolveMaterialInstance = UMaterialInstanceDynamic::Create(GetMesh()->GetMaterial(0), this);
+        GetMesh()->SetMaterial(0, DynamicDissolveMaterialInstance);
+        DynamicDissolveMaterialInstance->SetScalarParameterValue(TEXT("Dissolve"), 0.f);
+        DynamicDissolveMaterialInstance->SetScalarParameterValue(TEXT("Glow"), 200.f);
+        StartDissolve();
+    }
 }
 
 void AOpenShooterCharacter::PlayEliminationMontage() const
@@ -601,4 +614,21 @@ void AOpenShooterCharacter::EliminationFinished()
 {
     if (AOpenShooterGameMode* GameMode = GetWorld()->GetAuthGameMode<AOpenShooterGameMode>())
         GameMode->RequestRespawn(this, PlayerController);
+}
+
+// ReSharper disable once CppMemberFunctionMayBeConst
+void AOpenShooterCharacter::UpdateDissolveMaterial(const float DissolveValue)
+{
+    if (DynamicDissolveMaterialInstance)
+        DynamicDissolveMaterialInstance->SetScalarParameterValue(TEXT("Dissolve"), DissolveValue);
+}
+
+void AOpenShooterCharacter::StartDissolve()
+{
+    DissolveTrack.BindDynamic(this, &AOpenShooterCharacter::UpdateDissolveMaterial);
+    if (DissolveCurve && DissolveTimeline)
+    {
+        DissolveTimeline->AddInterpFloat(DissolveCurve, DissolveTrack);
+        DissolveTimeline->Play();
+    }
 }

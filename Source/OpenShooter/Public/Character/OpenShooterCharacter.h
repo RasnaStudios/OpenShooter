@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CombatComponent.h"
+#include "Components/TimelineComponent.h"
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
 #include "Interfaces/InteractWithCrosshairInterface.h"
@@ -11,6 +12,7 @@
 
 #include "OpenShooterCharacter.generated.h"
 
+class UTimelineComponent;
 class UCombatComponent;
 class AWeapon;
 class UWidgetComponent;
@@ -221,6 +223,27 @@ private:
     FRotator ProxyRotation;
     float ProxyYaw;
     float TimeSinceLastMovementReplication;
+
+    // Dissolve effect
+
+    UPROPERTY(VisibleAnywhere, Category = "Combat")
+    UTimelineComponent* DissolveTimeline;    // This is the component that contains the timeline
+
+    FOnTimelineFloat DissolveTrack;    // This is the delegate that will be called every frame to update the dissolve material
+
+    UPROPERTY(EditAnywhere, Category = "Effects")
+    UCurveFloat* DissolveCurve;    // This is the curve that will be used to update the dissolve material
+
+    // Callback function called every frame to update the dissolve material
+    UFUNCTION()
+    void UpdateDissolveMaterial(float DissolveValue);
+
+    // Function to start the dissolve effect
+    void StartDissolve();
+
+    // Dynamic instance that we can change runtime, created from the mesh material
+    UPROPERTY(VisibleAnywhere, Category = "Effects")
+    UMaterialInstanceDynamic* DynamicDissolveMaterialInstance;
 
 public:
     /** Returns CameraBoom subobject **/
