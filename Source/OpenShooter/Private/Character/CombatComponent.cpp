@@ -97,6 +97,13 @@ void UCombatComponent::OnRep_EquippedWeapon() const
 {
     if (EquippedWeapon && Character)
     {
+        // Even if these should be run on the server, we need to run them on the client as well
+        // the reason is that SetWeaponState will handle physics and collision which might interfere with attaching the weapon
+        // therefore we need to run this on the client as well so we are sure of the order of execution
+        EquippedWeapon->SetWeaponState(EWeaponState::EWS_Equipped);
+        EquippedWeapon->AttachToComponent(
+            Character->GetMesh(), FAttachmentTransformRules::SnapToTargetIncludingScale, "RightHandSocket");
+    
         Character->GetCharacterMovement()->bOrientRotationToMovement = false;
         Character->bUseControllerRotationYaw = true;
     }

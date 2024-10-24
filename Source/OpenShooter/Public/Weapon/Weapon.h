@@ -50,6 +50,8 @@ public:
     UPROPERTY(EditAnywhere, Category = "Crosshair")
     UTexture2D* CrosshairsBottom;
 
+    void Drop();
+
 protected:
     // Called when the game starts or when spawned
     virtual void BeginPlay() override;
