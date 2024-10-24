@@ -593,6 +593,7 @@ void AOpenShooterCharacter::MulticastEliminate_Implementation()
     bEliminated = true;    // Enables the elimination slot (from standing idle state machine)
     PlayEliminationMontage();
 
+    // Start dissolve effect
     // We get the material of the mesh and set the dissolve parameter to the initial value (0).
     if (GetMesh()->GetMaterial(0))
     {
@@ -603,11 +604,12 @@ void AOpenShooterCharacter::MulticastEliminate_Implementation()
         StartDissolve();
     }
 
-    // Disable character movement
-    GetCharacterMovement()->DisableMovement();
-    GetCharacterMovement()->StopMovementImmediately();
+    // Disable character movement and collision
+    GetCharacterMovement()->DisableMovement(); // no movement with wasd
+    GetCharacterMovement()->StopMovementImmediately(); // no movement with mouse
+
     if (PlayerController)
-        DisableInput(PlayerController);
+        DisableInput(PlayerController); // no input at all
 
     // Disable collision
     GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
@@ -624,6 +626,8 @@ void AOpenShooterCharacter::EliminationFinished()
 {
     if (AOpenShooterGameMode* GameMode = GetWorld()->GetAuthGameMode<AOpenShooterGameMode>())
         GameMode->RequestRespawn(this, PlayerController);
+    if (Combat && Combat->EquippedWeapon)
+        Combat->EquippedWeapon->Drop();
 }
 
 // ReSharper disable once CppMemberFunctionMayBeConst
