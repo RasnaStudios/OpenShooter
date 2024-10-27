@@ -584,6 +584,8 @@ void AOpenShooterCharacter::ReceiveDamage(
 
 void AOpenShooterCharacter::Eliminate()
 {
+    if (Combat && Combat->EquippedWeapon)
+        Combat->EquippedWeapon->Drop();
     MulticastEliminate();
     GetWorldTimerManager().SetTimer(EliminationTimer, this, &AOpenShooterCharacter::EliminationFinished, EliminationDelay);
 }
@@ -614,6 +616,17 @@ void AOpenShooterCharacter::MulticastEliminate_Implementation()
     // Disable collision
     GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
     GetMesh()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+
+    // Spawn Elimination Bot
+    if (EliminationBotEffects)
+    {
+        FVector EliminationBotSpawnLocation(GetActorLocation() + FVector(0.f, 0.f, 200.f));
+        UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), EliminationBotEffects, EliminationBotSpawnLocation);
+    }
+    if (EliminationSound)
+    {
+        UGameplayStatics::SpawnSoundAtLocation(this, EliminationSound, GetActorLocation());
+    }
 }
 
 void AOpenShooterCharacter::PlayEliminationMontage() const
