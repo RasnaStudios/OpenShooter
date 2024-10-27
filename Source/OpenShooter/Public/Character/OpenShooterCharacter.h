@@ -150,6 +150,15 @@ private:
 
     void EliminationFinished();
 
+
+    // Elimination Bot
+
+    UPROPERTY(EditAnywhere, Category = "Effects")
+    UParticleSystem* EliminationBotEffects;
+
+    UPROPERTY(EditAnywhere, Category = "Effects")
+    USoundCue* EliminationSound;
+
 protected:
     // APawn interface
     virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
