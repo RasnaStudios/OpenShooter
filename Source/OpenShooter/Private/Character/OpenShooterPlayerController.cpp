@@ -27,3 +27,14 @@ void AOpenShooterPlayerController::SetHUDHealth(float Health, float MaxHealth)
         HUD->CharacterOverlay->HealthText->SetText(HealthText);
     }
 }
+
+void AOpenShooterPlayerController::SetHUDScore(float Score)
+{
+    HUD = HUD == nullptr ? Cast<AOpenShooterHUD>(GetHUD()) : HUD;
+
+    if (HUD && HUD->CharacterOverlay && HUD->CharacterOverlay->ScoreAmount)
+    {
+        const FText ScoreText = FText::FromString(FString::Printf(TEXT("%d"), FMath::FloorToInt(Score)));
+        HUD->CharacterOverlay->ScoreAmount->SetText(ScoreText);
+    }
+}

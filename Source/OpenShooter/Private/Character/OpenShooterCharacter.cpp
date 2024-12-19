@@ -19,6 +19,7 @@
 #include "Net/UnrealNetwork.h"
 #include "OpenShooter.h"
 #include "OpenShooterGameMode.h"
+#include "OpenShooterPlayerState.h"
 #include "Sound/SoundCue.h"
 #include "Weapon/Weapon.h"
 
@@ -152,6 +153,8 @@ void AOpenShooterCharacter::Tick(float DeltaSeconds)
     }
 
     HideCameraIfCharacterClose();
+
+    PollInit();    // Poll and initialize any relevant data for the beginning of the game (HUD, etc.)
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -512,6 +515,19 @@ void AOpenShooterCharacter::FireReleased()
         Combat->FireButtonPressed(false);
 }
 
+void AOpenShooterCharacter::PollInit()
+{
+    // We poll for the player state to update the HUD
+    // If the player state is not set, we set it and set the score to 0
+    // This is run on Tick function
+    if (PlayerState == nullptr)
+    {
+        PlayerState = GetPlayerState<AOpenShooterPlayerState>();
+        if (PlayerState)
+            PlayerState->AddToScore(0);
+    }
+}
+
 void AOpenShooterCharacter::HideCameraIfCharacterClose() const
 {
     if (!IsLocallyControlled())
@@ -607,11 +623,11 @@ void AOpenShooterCharacter::MulticastEliminate_Implementation()
     }
 
     // Disable character movement and collision
-    GetCharacterMovement()->DisableMovement(); // no movement with wasd
-    GetCharacterMovement()->StopMovementImmediately(); // no movement with mouse
+    GetCharacterMovement()->DisableMovement();            // no movement with wasd
+    GetCharacterMovement()->StopMovementImmediately();    // no movement with mouse
 
     if (PlayerController)
-        DisableInput(PlayerController); // no input at all
+        DisableInput(PlayerController);    // no input at all
 
     // Disable collision
     GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
