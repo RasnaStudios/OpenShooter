@@ -4,33 +4,74 @@
 
 #include "Character/OpenShooterCharacter.h"
 #include "Character/OpenShooterPlayerController.h"
+#include "Net/UnrealNetwork.h"
 
-void AOpenShooterPlayerState::AddToScore(float Amount)
+void AOpenShooterPlayerState::GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const
+{
+    Super::GetLifetimeReplicatedProps(OutLifetimeProps);    // This replicates the score
+
+    // We need to replicate the defeats so that the client can show the defeats in the HUD
+    DOREPLIFETIME(AOpenShooterPlayerState, Defeats);
+}
+
+void AOpenShooterPlayerState::AddToScore(const float Amount)
 {
     SetScore(GetScore() + Amount);
-    Character = Character == nullptr ? Cast<AOpenShooterCharacter>(GetPawn()) : Character;
-    if (Character != nullptr)
-    {
-        Controller = Controller == nullptr ? Cast<AOpenShooterPlayerController>(GetOwner()) : Controller;
-        if (Controller != nullptr)
-        {
-            Controller->SetHUDScore(GetScore());
-        }
-    }
+
+    const float CurrentScore = GetScore();
+
+    // Update the HUD to reflect the new score
+    UpdateHUD(&CurrentScore, nullptr);
+}
+
+void AOpenShooterPlayerState::AddToDefeats(const int32 Amount)
+{
+    Defeats += Amount;
+
+    // Update the HUD to reflect the new defeats
+    UpdateHUD(nullptr, &Defeats);
 }
 
 void AOpenShooterPlayerState::OnRep_Score()
 {
     Super::OnRep_Score();
-    // This will be called many times, so we don't want to cast to the character every time
-    // Therefore, we will cache the character and controller
-    Character = Character == nullptr ? Cast<AOpenShooterCharacter>(GetPawn()) : Character;
-    if (Character != nullptr)
+
+    const float CurrentScore = GetScore();
+
+    UpdateHUD(&CurrentScore, nullptr);
+}
+
+void AOpenShooterPlayerState::OnRep_Defeats()
+{
+    // Update the HUD when the replicated defeats value changes
+    UpdateHUD(nullptr, &Defeats);
+}
+
+void AOpenShooterPlayerState::UpdateHUD(const float* NewScore, const int32* NewDefeats)
+{
+    // Cache the character and controller only once if not already cached
+    if (!Character)
     {
-        Controller = Controller == nullptr ? Cast<AOpenShooterPlayerController>(GetOwner()) : Controller;
-        if (Controller != nullptr)
+        Character = Cast<AOpenShooterCharacter>(GetPawn());
+    }
+
+    if (Character && !Controller)
+    {
+        Controller = Cast<AOpenShooterPlayerController>(GetOwner());
+    }
+
+    if (Controller)
+    {
+        // Update the HUD with the new score if provided
+        if (NewScore)
         {
-            Controller->SetHUDScore(GetScore());
+            Controller->SetHUDScore(*NewScore);
+        }
+
+        // Update the HUD with the new defeats if provided
+        if (NewDefeats)
+        {
+            Controller->SetHUDDefeats(*NewDefeats);
         }
     }
 }

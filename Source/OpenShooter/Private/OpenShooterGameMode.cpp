@@ -21,6 +21,11 @@ void AOpenShooterGameMode::PlayerEliminated(AOpenShooterCharacter* EliminatedCha
         AttackerPlayerState->AddToScore(1.0f);
     }
 
+    if (VictimPlayerState)
+    {
+        VictimPlayerState->AddToDefeats(1);
+    }
+
     if (EliminatedCharacter)
         EliminatedCharacter->Eliminate();
 }

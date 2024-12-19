@@ -201,7 +201,8 @@ protected:
     // Poll and initialize any relevant data for the beginning of the game (HUD, etc.)
     void PollInit();
 
-    AOpenShooterPlayerState* PlayerState;
+    UPROPERTY()    // set as uproperty to initialize it and avoid crashes
+    AOpenShooterPlayerState* OSPlayerState;
 
 private:
     float AimOffset_Yaw;
