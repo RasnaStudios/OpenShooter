@@ -103,7 +103,7 @@ void UCombatComponent::OnRep_EquippedWeapon() const
         EquippedWeapon->SetWeaponState(EWeaponState::EWS_Equipped);
         EquippedWeapon->AttachToComponent(
             Character->GetMesh(), FAttachmentTransformRules::SnapToTargetIncludingScale, "RightHandSocket");
-    
+
         Character->GetCharacterMovement()->bOrientRotationToMovement = false;
         Character->bUseControllerRotationYaw = true;
     }

@@ -19,6 +19,7 @@ public:
     AOpenShooterHUD* HUD;
 
     void SetHUDHealth(float Health, float MaxHealth);
+    void SetHUDScore(float Score);
 
 protected:
     virtual void BeginPlay() override;

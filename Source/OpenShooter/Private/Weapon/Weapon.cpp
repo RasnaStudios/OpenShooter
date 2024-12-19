@@ -114,16 +114,17 @@ void AWeapon::SetWeaponState(const EWeaponState State)
         case EWeaponState::EWS_Equipped:
             ShowPickupWidget(false);
             AreaSphere->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-            WeaponMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);    
+            WeaponMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
             WeaponMesh->SetSimulatePhysics(false);
             WeaponMesh->SetEnableGravity(false);
             break;
         case EWeaponState::EWS_Dropped:
-            if (HasAuthority())  // we use this because we call this function in the client in CombatComponent::OnRep_EquippedWeapon
+            if (HasAuthority())    // we use this because we call this function in the client in
+                                   // CombatComponent::OnRep_EquippedWeapon
                 AreaSphere->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
             WeaponMesh->SetSimulatePhysics(true);
             WeaponMesh->SetEnableGravity(true);
-            WeaponMesh->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);    
+            WeaponMesh->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
             break;
         default:
             break;
@@ -136,15 +137,15 @@ void AWeapon::OnRep_WeaponState(EWeaponState PreviousState)
     {
         case EWeaponState::EWS_Equipped:
             PickupWidget->SetVisibility(false);
-            WeaponMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);    
+            WeaponMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
             WeaponMesh->SetSimulatePhysics(false);
             WeaponMesh->SetEnableGravity(false);
             break;
         case EWeaponState::EWS_Dropped:
             WeaponMesh->SetSimulatePhysics(true);
             WeaponMesh->SetEnableGravity(true);
-            WeaponMesh->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);    
-        break;
+            WeaponMesh->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+            break;
         default:
             break;
     }
@@ -155,7 +156,5 @@ void AWeapon::Drop()
     SetWeaponState(EWeaponState::EWS_Dropped);
     const FDetachmentTransformRules DetachmentRules(EDetachmentRule::KeepWorld, false);
     WeaponMesh->DetachFromComponent(DetachmentRules);
-    SetOwner(nullptr);   // Remove the owner so the weapon can be picked up by other characters
-    
-    
+    SetOwner(nullptr);    // Remove the owner so the weapon can be picked up by other characters
 }

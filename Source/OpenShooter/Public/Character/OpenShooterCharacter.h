@@ -12,6 +12,7 @@
 
 #include "OpenShooterCharacter.generated.h"
 
+class AOpenShooterPlayerState;
 class UTimelineComponent;
 class UCombatComponent;
 class AWeapon;
@@ -150,7 +151,6 @@ private:
 
     void EliminationFinished();
 
-
     // Elimination Bot
 
     UPROPERTY(EditAnywhere, Category = "Effects")
@@ -197,6 +197,11 @@ protected:
     // FireButtonPressed
     void FirePressed();
     void FireReleased();
+
+    // Poll and initialize any relevant data for the beginning of the game (HUD, etc.)
+    void PollInit();
+
+    AOpenShooterPlayerState* PlayerState;
 
 private:
     float AimOffset_Yaw;

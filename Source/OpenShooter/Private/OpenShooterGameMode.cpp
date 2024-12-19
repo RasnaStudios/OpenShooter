@@ -5,11 +5,22 @@
 #include "Character/OpenShooterCharacter.h"
 #include "GameFramework/PlayerStart.h"
 #include "Kismet/GameplayStatics.h"
+#include "OpenShooterPlayerState.h"
 #include "UObject/ConstructorHelpers.h"
 
 void AOpenShooterGameMode::PlayerEliminated(AOpenShooterCharacter* EliminatedCharacter,
     AOpenShooterPlayerController* VictimController, AOpenShooterPlayerController* AttackerController)
 {
+    AOpenShooterPlayerState* AttackerPlayerState =
+        AttackerController ? Cast<AOpenShooterPlayerState>(AttackerController->PlayerState) : nullptr;
+    AOpenShooterPlayerState* VictimPlayerState =
+        VictimController ? Cast<AOpenShooterPlayerState>(VictimController->PlayerState) : nullptr;
+
+    if (AttackerPlayerState && AttackerPlayerState != VictimPlayerState)
+    {
+        AttackerPlayerState->AddToScore(1.0f);
+    }
+
     if (EliminatedCharacter)
         EliminatedCharacter->Eliminate();
 }
