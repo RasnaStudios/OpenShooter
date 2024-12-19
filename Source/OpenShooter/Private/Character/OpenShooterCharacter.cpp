@@ -520,11 +520,14 @@ void AOpenShooterCharacter::PollInit()
     // We poll for the player state to update the HUD
     // If the player state is not set, we set it and set the score to 0
     // This is run on Tick function
-    if (PlayerState == nullptr)
+    if (OSPlayerState == nullptr)
     {
-        PlayerState = GetPlayerState<AOpenShooterPlayerState>();
-        if (PlayerState)
-            PlayerState->AddToScore(0);
+        OSPlayerState = GetPlayerState<AOpenShooterPlayerState>();
+        if (OSPlayerState)
+        {
+            OSPlayerState->AddToScore(0);
+            OSPlayerState->AddToDefeats(0);
+        }
     }
 }
 

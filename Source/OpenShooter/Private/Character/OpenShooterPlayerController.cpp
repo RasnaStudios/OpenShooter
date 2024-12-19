@@ -38,3 +38,14 @@ void AOpenShooterPlayerController::SetHUDScore(float Score)
         HUD->CharacterOverlay->ScoreAmount->SetText(ScoreText);
     }
 }
+
+void AOpenShooterPlayerController::SetHUDDefeats(int32 Defeats)
+{
+    HUD = HUD == nullptr ? Cast<AOpenShooterHUD>(GetHUD()) : HUD;
+
+    if (HUD && HUD->CharacterOverlay && HUD->CharacterOverlay->DefeatsAmount)
+    {
+        const FText DefeatsText = FText::FromString(FString::Printf(TEXT("%d"), Defeats));
+        HUD->CharacterOverlay->DefeatsAmount->SetText(DefeatsText);
+    }
+}
