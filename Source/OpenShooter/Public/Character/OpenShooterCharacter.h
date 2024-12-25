@@ -151,6 +151,12 @@ private:
 
     void EliminationFinished();
 
+    UFUNCTION(Client, Reliable)
+    void ClientShowAnnoucementMessage(const FString& Message);
+
+    UFUNCTION(Client, Reliable)
+    void ClientHideAnnoucementMessage();
+
     // Elimination Bot
 
     UPROPERTY(EditAnywhere, Category = "Effects")

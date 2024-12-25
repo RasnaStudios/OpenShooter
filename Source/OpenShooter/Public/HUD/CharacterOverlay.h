@@ -7,6 +7,7 @@
 
 #include "CharacterOverlay.generated.h"
 
+class URichTextBlock;
 class UTextBlock;
 class UProgressBar;
 /**
@@ -31,4 +32,7 @@ public:
     // Deaths
     UPROPERTY(meta = (BindWidget))
     UTextBlock* DefeatsAmount;
+
+    UPROPERTY(meta = (BindWidget))
+    URichTextBlock* AnnouncementText;
 };

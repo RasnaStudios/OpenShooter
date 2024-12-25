@@ -117,6 +117,7 @@ void AOpenShooterCharacter::BeginPlay()
 
     // We set the health of the character to the max health
     UpdateHUDHealth();
+    ClientHideAnnoucementMessage();
 
     // We bind the OnTakeAnyDamage event to the ReceiveDamage function only for server
     if (HasAuthority())
@@ -597,6 +598,15 @@ void AOpenShooterCharacter::ReceiveDamage(
             PlayerController = PlayerController == nullptr ? Cast<AOpenShooterPlayerController>(Controller) : PlayerController;
             AOpenShooterPlayerController* AttackerController = Cast<AOpenShooterPlayerController>(InstigatorController);
             GameMode->PlayerEliminated(this, PlayerController, AttackerController);    // ptr checks are done inside this function
+
+            if (PlayerController)
+            {
+                AOpenShooterPlayerState* AttackerPlayerState =
+                    AttackerController ? Cast<AOpenShooterPlayerState>(AttackerController->PlayerState) : nullptr;
+                FString AttackerName = AttackerPlayerState ? AttackerPlayerState->GetPlayerName() : TEXT("???");
+                FString DefeatMessage = FString::Printf(TEXT("<AttackerName>%s</> killed you!"), *AttackerName);
+                ClientShowAnnoucementMessage(DefeatMessage);
+            }
         }
     }
 }
@@ -660,6 +670,22 @@ void AOpenShooterCharacter::EliminationFinished()
         GameMode->RequestRespawn(this, PlayerController);
     if (Combat && Combat->EquippedWeapon)
         Combat->EquippedWeapon->Drop();
+}
+
+void AOpenShooterCharacter::ClientShowAnnoucementMessage_Implementation(const FString& Message)
+{
+    if (AOpenShooterPlayerController* OpenShooterController = Cast<AOpenShooterPlayerController>(Controller))
+    {
+        OpenShooterController->SetHUDAnnoucement(FText::FromString(Message));
+    }
+}
+
+void AOpenShooterCharacter::ClientHideAnnoucementMessage_Implementation()
+{
+    if (AOpenShooterPlayerController* OpenShooterController = Cast<AOpenShooterPlayerController>(Controller))
+    {
+        OpenShooterController->HideAnnoucementText();
+    }
 }
 
 // ReSharper disable once CppMemberFunctionMayBeConst

@@ -3,6 +3,7 @@
 #include "Character/OpenShooterPlayerController.h"
 
 #include "Components/ProgressBar.h"
+#include "Components/RichTextBlock.h"
 #include "Components/TextBlock.h"
 #include "HUD/CharacterOverlay.h"
 #include "HUD/OpenShooterHUD.h"
@@ -12,6 +13,7 @@ void AOpenShooterPlayerController::BeginPlay()
     Super::BeginPlay();
 
     HUD = Cast<AOpenShooterHUD>(GetHUD());
+    HideAnnoucementText();
 }
 
 void AOpenShooterPlayerController::SetHUDHealth(float Health, float MaxHealth)
@@ -47,5 +49,31 @@ void AOpenShooterPlayerController::SetHUDDefeats(int32 Defeats)
     {
         const FText DefeatsText = FText::FromString(FString::Printf(TEXT("%d"), Defeats));
         HUD->CharacterOverlay->DefeatsAmount->SetText(DefeatsText);
+    }
+}
+
+void AOpenShooterPlayerController::SetHUDAnnoucement(const FText& Message, float DisplayTime)
+{
+    HUD = HUD == nullptr ? Cast<AOpenShooterHUD>(GetHUD()) : HUD;
+
+    if (HUD && HUD->CharacterOverlay && HUD->CharacterOverlay->AnnouncementText)
+    {
+        HUD->CharacterOverlay->AnnouncementText->SetText(Message);
+        HUD->CharacterOverlay->AnnouncementText->SetVisibility(ESlateVisibility::Visible);
+
+        // Start a timer to hide the text after DisplayTime seconds
+        GetWorldTimerManager().ClearTimer(HideAnnoucementTextTimerHandle);    // Clear any existing timers
+        GetWorldTimerManager().SetTimer(
+            HideAnnoucementTextTimerHandle, this, &AOpenShooterPlayerController::HideAnnoucementText, DisplayTime, false);
+    }
+}
+
+void AOpenShooterPlayerController::HideAnnoucementText()
+{
+    HUD = HUD == nullptr ? Cast<AOpenShooterHUD>(GetHUD()) : HUD;
+
+    if (HUD && HUD->CharacterOverlay && HUD->CharacterOverlay->AnnouncementText)
+    {
+        HUD->CharacterOverlay->AnnouncementText->SetVisibility(ESlateVisibility::Hidden);
     }
 }

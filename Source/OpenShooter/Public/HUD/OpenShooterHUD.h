@@ -32,6 +32,7 @@ public:
     virtual void DrawHUD() override;
 
     // The character overlay widget
+    UPROPERTY()
     UCharacterOverlay* CharacterOverlay;
 
     UPROPERTY(EditAnywhere, Category = "Widgets")
