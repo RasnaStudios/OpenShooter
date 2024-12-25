@@ -117,7 +117,6 @@ void AOpenShooterCharacter::BeginPlay()
 
     // We set the health of the character to the max health
     UpdateHUDHealth();
-    ClientHideAnnoucementMessage();
 
     // We bind the OnTakeAnyDamage event to the ReceiveDamage function only for server
     if (HasAuthority())
@@ -528,6 +527,7 @@ void AOpenShooterCharacter::PollInit()
         {
             OSPlayerState->AddToScore(0);
             OSPlayerState->AddToDefeats(0);
+            OSPlayerState->ClearAnnoucementMessage();
         }
     }
 }
@@ -603,9 +603,10 @@ void AOpenShooterCharacter::ReceiveDamage(
             {
                 AOpenShooterPlayerState* AttackerPlayerState =
                     AttackerController ? Cast<AOpenShooterPlayerState>(AttackerController->PlayerState) : nullptr;
-                FString AttackerName = AttackerPlayerState ? AttackerPlayerState->GetPlayerName() : TEXT("???");
-                FString DefeatMessage = FString::Printf(TEXT("<AttackerName>%s</> killed you!"), *AttackerName);
-                ClientShowAnnoucementMessage(DefeatMessage);
+                const FString AttackerName = AttackerPlayerState ? AttackerPlayerState->GetPlayerName() : TEXT("???");
+                const FString DefeatMessage = FString::Printf(TEXT("<AttackerName>%s</> killed you!"), *AttackerName);
+                AOpenShooterPlayerState* ThisPlayerState = Cast<AOpenShooterPlayerState>(PlayerController->PlayerState);
+                ThisPlayerState->SetAnnoucementMessage(DefeatMessage);
             }
         }
     }
@@ -670,22 +671,6 @@ void AOpenShooterCharacter::EliminationFinished()
         GameMode->RequestRespawn(this, PlayerController);
     if (Combat && Combat->EquippedWeapon)
         Combat->EquippedWeapon->Drop();
-}
-
-void AOpenShooterCharacter::ClientShowAnnoucementMessage_Implementation(const FString& Message)
-{
-    if (AOpenShooterPlayerController* OpenShooterController = Cast<AOpenShooterPlayerController>(Controller))
-    {
-        OpenShooterController->SetHUDAnnoucement(FText::FromString(Message));
-    }
-}
-
-void AOpenShooterCharacter::ClientHideAnnoucementMessage_Implementation()
-{
-    if (AOpenShooterPlayerController* OpenShooterController = Cast<AOpenShooterPlayerController>(Controller))
-    {
-        OpenShooterController->HideAnnoucementText();
-    }
 }
 
 // ReSharper disable once CppMemberFunctionMayBeConst

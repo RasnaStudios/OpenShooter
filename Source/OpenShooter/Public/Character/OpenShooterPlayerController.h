@@ -22,11 +22,12 @@ public:
     void SetHUDHealth(float Health, float MaxHealth);
     void SetHUDScore(float Score);
     void SetHUDDefeats(int32 Defeats);
-    void SetHUDAnnoucement(const FText& Message, float DisplayTime = 5.0f);
-    void HideAnnoucementText();
+    void SetHUDAnnoucement(const FString& Message, float DisplayTime = 5.0f);
+    void ClearAnnoucementText();
 
 protected:
     virtual void BeginPlay() override;
+    virtual void OnPossess(APawn* InPawn) override;
 
 private:
     FTimerHandle HideAnnoucementTextTimerHandle;

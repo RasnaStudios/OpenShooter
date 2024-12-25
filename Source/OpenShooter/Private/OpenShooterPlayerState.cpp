@@ -12,6 +12,7 @@ void AOpenShooterPlayerState::GetLifetimeReplicatedProps(TArray<class FLifetimeP
 
     // We need to replicate the defeats so that the client can show the defeats in the HUD
     DOREPLIFETIME(AOpenShooterPlayerState, Defeats);
+    DOREPLIFETIME_CONDITION(AOpenShooterPlayerState, AnnoucementMessage, COND_OwnerOnly);
 }
 
 void AOpenShooterPlayerState::AddToScore(const float Amount)
@@ -45,6 +46,47 @@ void AOpenShooterPlayerState::OnRep_Defeats()
 {
     // Update the HUD when the replicated defeats value changes
     UpdateHUD(nullptr, &Defeats);
+}
+
+void AOpenShooterPlayerState::OnRep_AnnounceMessage()
+{
+    Character = Character ? Character : Cast<AOpenShooterCharacter>(GetPawn());
+    if (Character)
+    {
+        Controller = Controller ? Controller : Cast<AOpenShooterPlayerController>(Character->GetController());
+        if (Controller)
+        {
+            Controller->SetHUDAnnoucement(AnnoucementMessage);
+        }
+    }
+}
+
+void AOpenShooterPlayerState::SetAnnoucementMessage(const FString& Message)
+{
+    AnnoucementMessage = Message;    // triggers OnRep_AnnounceMessage
+    Character = Character ? Character : Cast<AOpenShooterCharacter>(GetPawn());
+    if (Character)
+    {
+        Controller = Controller ? Controller : Cast<AOpenShooterPlayerController>(Character->GetController());
+        if (Controller)
+        {
+            Controller->SetHUDAnnoucement(AnnoucementMessage);
+        }
+    }
+}
+
+void AOpenShooterPlayerState::ClearAnnoucementMessage()
+{
+    AnnoucementMessage = "";    // triggers OnRep_AnnounceMessage
+    Character = Character ? Character : Cast<AOpenShooterCharacter>(GetPawn());
+    if (Character)
+    {
+        Controller = Controller ? Controller : Cast<AOpenShooterPlayerController>(Character->GetController());
+        if (Controller)
+        {
+            Controller->ClearAnnoucementText();
+        }
+    }
 }
 
 void AOpenShooterPlayerState::UpdateHUD(const float* NewScore, const int32* NewDefeats)
