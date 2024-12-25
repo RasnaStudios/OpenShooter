@@ -2,6 +2,7 @@
 
 #include "Character/OpenShooterPlayerController.h"
 
+#include "Character/OpenShooterCharacter.h"
 #include "Components/ProgressBar.h"
 #include "Components/RichTextBlock.h"
 #include "Components/TextBlock.h"
@@ -13,7 +14,17 @@ void AOpenShooterPlayerController::BeginPlay()
     Super::BeginPlay();
 
     HUD = Cast<AOpenShooterHUD>(GetHUD());
-    HideAnnoucementText();
+    ClearAnnoucementText();
+}
+
+void AOpenShooterPlayerController::OnPossess(APawn* InPawn)
+{
+    Super::OnPossess(InPawn);
+    if (const AOpenShooterCharacter* Character = Cast<AOpenShooterCharacter>(InPawn))
+    {
+        SetHUDHealth(Character->GetHealth(), Character->GetMaxHealth());
+        ClearAnnoucementText();
+    }
 }
 
 void AOpenShooterPlayerController::SetHUDHealth(float Health, float MaxHealth)
@@ -52,28 +63,29 @@ void AOpenShooterPlayerController::SetHUDDefeats(int32 Defeats)
     }
 }
 
-void AOpenShooterPlayerController::SetHUDAnnoucement(const FText& Message, float DisplayTime)
+void AOpenShooterPlayerController::SetHUDAnnoucement(const FString& Message, const float DisplayTime)
 {
     HUD = HUD == nullptr ? Cast<AOpenShooterHUD>(GetHUD()) : HUD;
 
     if (HUD && HUD->CharacterOverlay && HUD->CharacterOverlay->AnnouncementText)
     {
-        HUD->CharacterOverlay->AnnouncementText->SetText(Message);
+        HUD->CharacterOverlay->AnnouncementText->SetText(FText::FromString(Message));
         HUD->CharacterOverlay->AnnouncementText->SetVisibility(ESlateVisibility::Visible);
 
         // Start a timer to hide the text after DisplayTime seconds
         GetWorldTimerManager().ClearTimer(HideAnnoucementTextTimerHandle);    // Clear any existing timers
         GetWorldTimerManager().SetTimer(
-            HideAnnoucementTextTimerHandle, this, &AOpenShooterPlayerController::HideAnnoucementText, DisplayTime, false);
+            HideAnnoucementTextTimerHandle, this, &AOpenShooterPlayerController::ClearAnnoucementText, DisplayTime, false);
     }
 }
 
-void AOpenShooterPlayerController::HideAnnoucementText()
+void AOpenShooterPlayerController::ClearAnnoucementText()
 {
     HUD = HUD == nullptr ? Cast<AOpenShooterHUD>(GetHUD()) : HUD;
 
     if (HUD && HUD->CharacterOverlay && HUD->CharacterOverlay->AnnouncementText)
     {
+        HUD->CharacterOverlay->AnnouncementText->SetText(FText::GetEmpty());
         HUD->CharacterOverlay->AnnouncementText->SetVisibility(ESlateVisibility::Hidden);
     }
 }

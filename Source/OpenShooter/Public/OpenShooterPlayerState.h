@@ -41,6 +41,9 @@ private:
     UPROPERTY(ReplicatedUsing = OnRep_Defeats)
     int32 Defeats;
 
+    UPROPERTY(ReplicatedUsing = OnRep_AnnounceMessage)
+    FString AnnoucementMessage;
+
 public:
     // Client function to update the score. We override this function to update the HUD in the client (the base one is empty)
     virtual void OnRep_Score() override;
@@ -54,4 +57,12 @@ public:
 
     // Server function to update the score. We create a new function to also update the HUD in the server (think of listen server)
     void AddToDefeats(int32 Amount);
+
+    // Client function to show the annoucement message
+    UFUNCTION()
+    void OnRep_AnnounceMessage();
+
+    // Server function to show the annoucement message for listen-server player
+    void SetAnnoucementMessage(const FString& Message);
+    void ClearAnnoucementMessage();
 };
