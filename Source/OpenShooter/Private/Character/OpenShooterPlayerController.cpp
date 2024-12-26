@@ -89,3 +89,14 @@ void AOpenShooterPlayerController::ClearAnnoucementText()
         HUD->CharacterOverlay->AnnouncementText->SetVisibility(ESlateVisibility::Hidden);
     }
 }
+
+void AOpenShooterPlayerController::SetHUDWeaponAmmo(int32 Ammo)
+{
+    HUD = HUD == nullptr ? Cast<AOpenShooterHUD>(GetHUD()) : HUD;
+
+    if (HUD && HUD->CharacterOverlay && HUD->CharacterOverlay->DefeatsAmount)
+    {
+        const FText AmmoText = FText::FromString(FString::Printf(TEXT("%d"), Ammo));
+        HUD->CharacterOverlay->WeaponAmmoAmount->SetText(AmmoText);
+    }
+}
