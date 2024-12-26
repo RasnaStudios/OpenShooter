@@ -76,15 +76,17 @@ void UCombatComponent::EquipWeapon(AWeapon* Weapon)
 {
     UE_LOG(LogTemp, Warning, TEXT("Equipping Weapon"));
     if (Character == nullptr || Weapon == nullptr)
-    {
         return;
-    }
+    if (EquippedWeapon)
+        EquippedWeapon->Drop();
 
     EquippedWeapon = Weapon;
     EquippedWeapon->SetWeaponState(EWeaponState::EWS_Equipped);
     EquippedWeapon->AttachToComponent(
         Character->GetMesh(), FAttachmentTransformRules::SnapToTargetIncludingScale, "RightHandSocket");
+    Character = Character ? Character : Cast<AOpenShooterCharacter>(GetOwner());
     EquippedWeapon->SetOwner(Character);
+    EquippedWeapon->SetHUDAmmo();
 
     // We need this for the lean/strafing animation on the locally controlled character
     Character->GetCharacterMovement()->bOrientRotationToMovement = false;

@@ -32,6 +32,9 @@ public:
 
     virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
+    // We override this to replicate to clients the ammo count when the weapon is picked up
+    virtual void OnRep_Owner() override;
+
     void ShowPickupWidget(bool bShow) const;
 
     // Textures for the weapon crosshair
@@ -51,6 +54,8 @@ public:
     UTexture2D* CrosshairsBottom;
 
     void Drop();
+
+    void SetHUDAmmo();
 
 protected:
     // Called when the game starts or when spawned
@@ -75,6 +80,19 @@ private:
 
     UPROPERTY(EditAnywhere, Category = "Weapon Properties")
     TSubclassOf<ACasing> CasingClass;    // the bullet shell blueprint
+
+    UPROPERTY(EditAnywhere, ReplicatedUsing = OnRep_Ammo, Category = "Weapon Properties")
+    int32 Ammo;
+
+    UPROPERTY(EditAnywhere, Category = "Weapon Properties")
+    int32 MagCapacity;
+
+    // Client function that updates the HUD when the ammo changes
+    UFUNCTION()
+    void OnRep_Ammo();
+
+    // Server Function that subtracts 1 to ammo and updates the HUD
+    void SpendRound();
 
     // FireButtonPressed Animation
 public:
@@ -116,4 +134,11 @@ public:
     FORCEINLINE float GetZoomedInterpSpeed() const { return ZoomedInterpSpeed; }
     FORCEINLINE bool IsAutomatic() const { return bAutomatic; }
     FORCEINLINE float GetFireDelay() const { return FireDelay; }
+
+    // Just for caching
+private:
+    UPROPERTY()
+    class AOpenShooterCharacter* OwnerCharacter;
+    UPROPERTY()
+    class AOpenShooterPlayerController* OwnerController;
 };

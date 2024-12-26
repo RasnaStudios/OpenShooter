@@ -35,4 +35,7 @@ public:
 
     UPROPERTY(meta = (BindWidget))
     URichTextBlock* AnnouncementText;
+
+    UPROPERTY(meta = (BindWidget))
+    UTextBlock* WeaponAmmoAmount;
 };

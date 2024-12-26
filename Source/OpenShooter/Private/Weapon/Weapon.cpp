@@ -3,6 +3,7 @@
 #include "Weapon/Weapon.h"
 
 #include "Character/OpenShooterCharacter.h"
+#include "Character/OpenShooterPlayerController.h"
 #include "Components/SphereComponent.h"
 #include "Components/WidgetComponent.h"
 #include "Net/UnrealNetwork.h"
@@ -45,6 +46,9 @@ void AWeapon::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeP
     Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
     DOREPLIFETIME(AWeapon, WeaponState);
+    DOREPLIFETIME(
+        AWeapon, Ammo);    // We replicate the ammo variable to all clients because when the weapon is dropped, the ammo
+                           // should be replicated to the client to show the correct ammo count when the weapon is picked up
 }
 
 void AWeapon::ShowPickupWidget(const bool bShow) const
@@ -88,6 +92,42 @@ void AWeapon::OnSphereEndOverlap(
         Character->SetOverlappingWeapon(nullptr);
 }
 
+void AWeapon::OnRep_Owner()
+{
+    Super::OnRep_Owner();
+
+    if (Owner == nullptr)
+    {
+        // Clear the owner and controller references when the weapon is picked up (for the server it is done in the EquipWeapon
+        // function)
+        OwnerCharacter = nullptr;
+        OwnerController = nullptr;
+    }
+    else
+    {
+        // The pickup changes owner, so this function is called when the weapon is picked up.
+        // We update the HUD with the ammo count.
+        // We override this to update the ammo count on the client. For the server we call the same
+        // function in the EquipWeapon function.
+        SetHUDAmmo();
+    }
+}
+
+void AWeapon::OnRep_Ammo()
+{
+    // Update the HUD with the ammo count when the ammo changes
+    SetHUDAmmo();
+}
+
+void AWeapon::SpendRound()
+{
+    // After firing, we spend a round
+    // Subtract 1 from ammo
+    --Ammo;
+    // Update the HUD
+    SetHUDAmmo();
+}
+
 void AWeapon::Fire(const FVector& HitTarget)
 {
     if (FireAnimation)
@@ -101,6 +141,7 @@ void AWeapon::Fire(const FVector& HitTarget)
         if (UWorld* World = GetWorld())
             ACasing* Casing = World->SpawnActor<ACasing>(CasingClass, CasingTransform);
     }
+    SpendRound();    // subtract 1 from ammo and update the HUD
 }
 
 // This function runs on the server does everything that needs to be done when the weapon state change, on the server.
@@ -157,4 +198,24 @@ void AWeapon::Drop()
     const FDetachmentTransformRules DetachmentRules(EDetachmentRule::KeepWorld, false);
     WeaponMesh->DetachFromComponent(DetachmentRules);
     SetOwner(nullptr);    // Remove the owner so the weapon can be picked up by other characters
+
+    // We clear the owner and controller cached references in the server.
+    // The client will receive the OnRep_Owner function and will clear the references there.
+    OwnerCharacter = nullptr;
+    OwnerController = nullptr;
+    SetHUDAmmo();
+}
+
+void AWeapon::SetHUDAmmo()
+{
+    // Update the HUD with the ammo count
+    // This is called when the weapon is picked up or when the ammo changes after firing
+    OwnerCharacter = OwnerCharacter == nullptr ? Cast<AOpenShooterCharacter>(GetOwner()) : OwnerCharacter;
+    if (OwnerCharacter)
+    {
+        OwnerController =
+            OwnerController == nullptr ? Cast<AOpenShooterPlayerController>(OwnerCharacter->GetController()) : OwnerController;
+        if (OwnerController)
+            OwnerController->SetHUDWeaponAmmo(Ammo);
+    }
 }
