@@ -123,7 +123,7 @@ void AWeapon::SpendRound()
 {
     // After firing, we spend a round
     // Subtract 1 from ammo
-    --Ammo;
+    Ammo = FMath::Clamp(Ammo - 1, 0, MagCapacity);
     // Update the HUD
     SetHUDAmmo();
 }

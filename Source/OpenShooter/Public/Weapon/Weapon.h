@@ -134,6 +134,7 @@ public:
     FORCEINLINE float GetZoomedInterpSpeed() const { return ZoomedInterpSpeed; }
     FORCEINLINE bool IsAutomatic() const { return bAutomatic; }
     FORCEINLINE float GetFireDelay() const { return FireDelay; }
+    FORCEINLINE bool IsEmpty() const { return Ammo <= 0; }
 
     // Just for caching
 private:
