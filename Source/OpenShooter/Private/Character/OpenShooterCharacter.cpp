@@ -198,6 +198,9 @@ void AOpenShooterCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInp
         // FireButtonPressed
         EnhancedInputComponent->BindAction(FireAction, ETriggerEvent::Started, this, &AOpenShooterCharacter::FirePressed);
         EnhancedInputComponent->BindAction(FireAction, ETriggerEvent::Completed, this, &AOpenShooterCharacter::FireReleased);
+
+        // Reload
+        EnhancedInputComponent->BindAction(ReloadAction, ETriggerEvent::Triggered, this, &AOpenShooterCharacter::ReloadPressed);
     }
     else
     {
@@ -259,6 +262,29 @@ void AOpenShooterCharacter::PlayFireMontage(const bool bAiming) const
         AnimInstance->Montage_Play(FireWeaponMontage, 1.0f);
         const FName Section = bAiming ? FName("RifleAim") : FName("RifleHip");
         AnimInstance->Montage_JumpToSection(Section, FireWeaponMontage);
+    }
+}
+
+void AOpenShooterCharacter::PlayReloadMontage() const
+{
+    if (Combat == nullptr || Combat->EquippedWeapon == nullptr)
+        return;
+
+    UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
+    if (AnimInstance && ReloadMontage)
+    {
+        AnimInstance->Montage_Play(ReloadMontage, 1.0f);
+        FName Section;
+        switch (GetEquippedWeapon()->GetWeaponType())
+        {
+            case EWeaponType::EWT_AssaultRifle:
+                Section = FName("AssaultRifle");
+                break;
+            default:
+                Section = FName("AssaultRifle");
+                break;
+        }
+        AnimInstance->Montage_JumpToSection(Section, ReloadMontage);
     }
 }
 
@@ -513,6 +539,12 @@ void AOpenShooterCharacter::FireReleased()
 {
     if (Combat)    // even if weapon is not equipped we need to set the button as not pressed
         Combat->FireButtonPressed(false);
+}
+
+void AOpenShooterCharacter::ReloadPressed()
+{
+    if (Combat)
+        Combat->Reload();
 }
 
 void AOpenShooterCharacter::PollInit()

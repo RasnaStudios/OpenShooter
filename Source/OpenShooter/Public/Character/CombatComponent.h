@@ -65,6 +65,12 @@ protected:
 
     void SetHUDCrosshair(float DeltaSeconds);
 
+    void Reload();
+
+    // We need this RPC from the client to check if it's ok to reload
+    UFUNCTION(Server, Reliable)
+    void ServerReload();
+
 private:
     UPROPERTY()
     AOpenShooterCharacter* Character;

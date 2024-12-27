@@ -42,6 +42,7 @@ public:
     bool IsAiming() const;
 
     void PlayFireMontage(bool bAiming) const;
+    void PlayReloadMontage() const;
     void PlayHitReactMontage() const;
 
     UFUNCTION(NetMulticast, Unreliable)    // Easiest implementation for the client to play the impact effects
@@ -94,6 +95,10 @@ private:
     /** FireButtonPressed Input Action */
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input", meta = (AllowPrivateAccess = "true"))
     UInputAction* FireAction;
+
+    /** Reload Input Action */
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input", meta = (AllowPrivateAccess = "true"))
+    UInputAction* ReloadAction;
 
     // The widget component that will be displayed above the character
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Components|HUD", meta = (AllowPrivateAccess = "true"))
@@ -198,6 +203,9 @@ protected:
     void FirePressed();
     void FireReleased();
 
+    // Reload
+    void ReloadPressed();
+
     // Poll and initialize any relevant data for the beginning of the game (HUD, etc.)
     void PollInit();
 
@@ -215,6 +223,9 @@ private:
 
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Combat", meta = (AllowPrivateAccess = "true"))
     TObjectPtr<UAnimMontage> FireWeaponMontage;
+
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Combat", meta = (AllowPrivateAccess = "true"))
+    TObjectPtr<UAnimMontage> ReloadMontage;
 
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Combat", meta = (AllowPrivateAccess = "true"))
     TObjectPtr<UAnimMontage> HitReactMontage;

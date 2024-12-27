@@ -310,6 +310,24 @@ void UCombatComponent::SetHUDCrosshair(float DeltaSeconds)
     }
 }
 
+void UCombatComponent::Reload()
+{    // We need to check if we can reload on the server before we send an RPC to play the reload on all clients.
+    // Therefore we use the ServerReload function
+
+    // To avoid sending useless calls to the server, we check if there are any rounds in the carried ammo
+    if (CarriedAmmo > 0)
+    {
+        ServerReload();
+    }
+}
+
+void UCombatComponent::ServerReload_Implementation()
+{
+    if (Character == nullptr || EquippedWeapon == nullptr)
+        return;
+    Character->PlayReloadMontage();
+}
+
 void UCombatComponent::InterpFOV(const float DeltaSeconds)
 {
     if (EquippedWeapon == nullptr)
