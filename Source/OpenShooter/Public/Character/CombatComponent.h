@@ -49,6 +49,7 @@ protected:
     UFUNCTION()
     void OnRep_EquippedWeapon() const;
     void Fire();
+    bool CanFire() const;
 
     void FireButtonPressed(bool bButtonPressed);
 

@@ -122,7 +122,7 @@ void UCombatComponent::FireButtonPressed(const bool bButtonPressed)
 
 void UCombatComponent::Fire()
 {
-    if (!bCanFire)
+    if (!CanFire())
         return;
     bCanFire = false;    // we set this to false to prevent the player from firing too quickly
     // We set it to true in the FireTimerFinished function
@@ -140,6 +140,17 @@ void UCombatComponent::Fire()
         if (EquippedWeapon->IsAutomatic())
             StartFireTimer();
     }
+}
+
+bool UCombatComponent::CanFire() const
+{
+    if (EquippedWeapon == nullptr || Character == nullptr)
+        return false;
+
+    if (EquippedWeapon->IsEmpty())
+        return false;
+
+    return true;
 }
 
 void UCombatComponent::StartFireTimer()
