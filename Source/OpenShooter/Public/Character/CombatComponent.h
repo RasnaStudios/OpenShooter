@@ -5,6 +5,7 @@
 #include "Components/ActorComponent.h"
 #include "CoreMinimal.h"
 #include "HUD/OpenShooterHUD.h"
+#include "Weapon/WeaponTypes.h"
 
 #include "CombatComponent.generated.h"
 
@@ -142,4 +143,15 @@ private:
 
     void StartFireTimer();       // To start the timer
     void FireTimerFinished();    // Callback called when the timer finishes
+
+    // = Weapons =
+
+    UPROPERTY(ReplicatedUsing = OnRep_CarriedAmmo)
+    int32 CarriedAmmo;
+
+    UFUNCTION()
+    void OnRep_CarriedAmmo();
+
+    UPROPERTY(EditAnywhere, Category = "Combat")
+    TMap<EWeaponType, int32> CarriedAmmoMap;    // maps cannot be replicated, so we use the CarriedAmmo variable
 };

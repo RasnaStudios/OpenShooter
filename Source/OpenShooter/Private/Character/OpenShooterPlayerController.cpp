@@ -94,9 +94,20 @@ void AOpenShooterPlayerController::SetHUDWeaponAmmo(int32 Ammo)
 {
     HUD = HUD == nullptr ? Cast<AOpenShooterHUD>(GetHUD()) : HUD;
 
-    if (HUD && HUD->CharacterOverlay && HUD->CharacterOverlay->DefeatsAmount)
+    if (HUD && HUD->CharacterOverlay && HUD->CharacterOverlay->WeaponAmmoAmount)
     {
         const FText AmmoText = FText::FromString(FString::Printf(TEXT("%d"), Ammo));
         HUD->CharacterOverlay->WeaponAmmoAmount->SetText(AmmoText);
+    }
+}
+
+void AOpenShooterPlayerController::SetHUDCarriedAmmo(int32 Ammo)
+{
+    HUD = HUD == nullptr ? Cast<AOpenShooterHUD>(GetHUD()) : HUD;
+
+    if (HUD && HUD->CharacterOverlay && HUD->CharacterOverlay->CarriedAmmoAmount)
+    {
+        const FText AmmoText = FText::FromString(FString::Printf(TEXT("%d"), Ammo));
+        HUD->CharacterOverlay->CarriedAmmoAmount->SetText(AmmoText);
     }
 }
