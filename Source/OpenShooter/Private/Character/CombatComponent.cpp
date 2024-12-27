@@ -27,6 +27,7 @@ void UCombatComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Out
 
     DOREPLIFETIME(UCombatComponent, EquippedWeapon);
     DOREPLIFETIME(UCombatComponent, bAiming);
+    DOREPLIFETIME_CONDITION(UCombatComponent, CarriedAmmo, COND_OwnerOnly);    // this matter only for the client
 }
 
 void UCombatComponent::BeginPlay()
@@ -87,6 +88,14 @@ void UCombatComponent::EquipWeapon(AWeapon* Weapon)
     Character = Character ? Character : Cast<AOpenShooterCharacter>(GetOwner());
     EquippedWeapon->SetOwner(Character);
     EquippedWeapon->SetHUDAmmo();
+
+    // We set the carried ammo (controller)
+    if (CarriedAmmoMap.Contains(EquippedWeapon->GetWeaponType()))
+        CarriedAmmo =
+            CarriedAmmoMap[EquippedWeapon->GetWeaponType()];    // this triggers OnRep_CarriedAmmo, and we need to update the HUD
+    Controller = Controller ? Controller : Cast<AOpenShooterPlayerController>(Character->GetController());
+    if (Controller)
+        Controller->SetHUDCarriedAmmo(CarriedAmmo);
 
     // We need this for the lean/strafing animation on the locally controlled character
     Character->GetCharacterMovement()->bOrientRotationToMovement = false;
@@ -354,4 +363,11 @@ void UCombatComponent::ServerSetAiming_Implementation(const bool bIsAiming)
     // Set the walk speed based on the aiming state
     if (Character)
         Character->GetCharacterMovement()->MaxWalkSpeed = bIsAiming ? AimWalkSpeed : BaseWalkSpeed;
+}
+
+void UCombatComponent::OnRep_CarriedAmmo()
+{    // we need to update the HUD on the client when the carried ammo changes
+    Controller = Controller ? Controller : Cast<AOpenShooterPlayerController>(Character->GetController());
+    if (Controller)
+        Controller->SetHUDCarriedAmmo(CarriedAmmo);
 }

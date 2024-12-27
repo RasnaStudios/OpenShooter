@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
+#include "WeaponTypes.h"
 
 #include "Weapon.generated.h"
 
@@ -81,6 +82,9 @@ private:
     UPROPERTY(EditAnywhere, Category = "Weapon Properties")
     TSubclassOf<ACasing> CasingClass;    // the bullet shell blueprint
 
+    UPROPERTY(EditAnywhere)
+    EWeaponType WeaponType;
+
     UPROPERTY(EditAnywhere, ReplicatedUsing = OnRep_Ammo, Category = "Weapon Properties")
     int32 Ammo;
 
@@ -135,6 +139,7 @@ public:
     FORCEINLINE bool IsAutomatic() const { return bAutomatic; }
     FORCEINLINE float GetFireDelay() const { return FireDelay; }
     FORCEINLINE bool IsEmpty() const { return Ammo <= 0; }
+    FORCEINLINE EWeaponType GetWeaponType() const { return WeaponType; }
 
     // Just for caching
 private:

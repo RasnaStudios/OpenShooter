@@ -12,6 +12,10 @@ class AOpenShooterCharacter;
 /**
  * In this class, we will add the defeats to the player state and replicate it to the client
  * We provide functions to update the score and the defeats and show the values in the HUD
+ *
+ * A very important details is that the player state replicates way slower than the controller and the combat component
+ * Therefore we will keep the carried ammo on the combat component and the weapon, and the score and defeats on the player state
+ *
  * We also cache the character and controller to avoid casting every time we update the HUD
  * We override the OnRep_Score function to update the HUD in the client
  * And we create the OnRep_Defeats function to update the HUD in the client when the defeats change

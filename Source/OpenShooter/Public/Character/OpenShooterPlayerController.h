@@ -25,6 +25,7 @@ public:
     void SetHUDAnnoucement(const FString& Message, float DisplayTime = 5.0f);
     void ClearAnnoucementText();
     void SetHUDWeaponAmmo(int32 Ammo);
+    void SetHUDCarriedAmmo(int32 Ammo);
 
 protected:
     virtual void BeginPlay() override;
