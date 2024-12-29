@@ -9,6 +9,7 @@
 #include "HUD/OpenShooterHUD.h"
 #include "Kismet/GameplayStatics.h"
 #include "Net/UnrealNetwork.h"
+#include "Sound/SoundCue.h"
 #include "Weapon/Weapon.h"
 
 #define TRACE_LENGTH 80000.f;
@@ -102,6 +103,10 @@ void UCombatComponent::EquipWeapon(AWeapon* Weapon)
     Character->GetCharacterMovement()->bOrientRotationToMovement = false;
     Character->bUseControllerRotationYaw = true;
 
+    // only for server. Play on the client in OnRep_EquippedWeapon
+    if (EquippedWeapon->EquipSound)
+        UGameplayStatics::PlaySoundAtLocation(this, EquippedWeapon->EquipSound, Character->GetActorLocation());
+
     UE_LOG(LogTemp, Warning, TEXT("Weapon Equipped!"));
 }
 
@@ -118,6 +123,10 @@ void UCombatComponent::OnRep_EquippedWeapon() const
 
         Character->GetCharacterMovement()->bOrientRotationToMovement = false;
         Character->bUseControllerRotationYaw = true;
+
+        // only for client. Play on the server in EquipWeapon
+        if (EquippedWeapon->EquipSound)
+            UGameplayStatics::PlaySoundAtLocation(this, EquippedWeapon->EquipSound, Character->GetActorLocation());
     }
 }
 

@@ -60,6 +60,9 @@ public:
 
     void AddAmmo(int32 Amount);
 
+    UPROPERTY(EditAnywhere, Category = "Weapon Properties")
+    USoundCue* EquipSound;
+
 protected:
     // Called when the game starts or when spawned
     virtual void BeginPlay() override;
