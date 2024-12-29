@@ -97,5 +97,11 @@ void UOpenShooterAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 
         // We need to disable the IK when reloading, so we use this variable in the blueprint
         bUseFABRIK = OpenShooterCharacter->GetCombatState() != ECombatState::ECS_Reloading;
+
+        // we need to disable the aim offsets when reloading, so we use this variable in the blueprint
+        bUseAimOffsets = OpenShooterCharacter->GetCombatState() != ECombatState::ECS_Reloading;
+
+        // We need to disable the right hand rotation when reloading, so we use this variable in the blueprint
+        bTransformRightHand = OpenShooterCharacter->GetCombatState() != ECombatState::ECS_Reloading;
     }
 }
