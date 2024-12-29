@@ -116,6 +116,7 @@ private:
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components|Combat", meta = (AllowPrivateAccess = "true"))
     UCombatComponent* Combat;
 
+    UPROPERTY()
     AOpenShooterPlayerController* PlayerController;
 
     // Camera Hiding
@@ -286,4 +287,5 @@ public:
     FORCEINLINE float GetMaxHealth() const { return MaxHealth; }
 
     AWeapon* GetEquippedWeapon() const;
+    ECombatState GetCombatState() const;
 };
