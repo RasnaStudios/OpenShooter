@@ -87,4 +87,12 @@ private:
     // To know when to disable the IK for the left hand
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Movement", meta = (AllowPrivateAccess = "true"))
     bool bUseFABRIK;
+
+    // To know when to disable the aimoffsets for the weapon
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Movement", meta = (AllowPrivateAccess = "true"))
+    bool bUseAimOffsets;
+
+    // To know when to disable the rotation of the right hand
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Movement", meta = (AllowPrivateAccess = "true"))
+    bool bTransformRightHand;
 };
