@@ -128,6 +128,9 @@ void UCombatComponent::OnRep_CombatState()
         case ECombatState::ECS_Reloading:
             HandleReload();
             break;
+        case ECombatState::ECS_Unoccupied:
+            if (bFireButtonPressed)
+                Fire();
         default:
             break;
     }
@@ -137,9 +140,7 @@ void UCombatComponent::FireButtonPressed(const bool bButtonPressed)
 {
     bFireButtonPressed = bButtonPressed;
     if (bFireButtonPressed)
-    {
         Fire();
-    }
 }
 
 void UCombatComponent::Fire()
@@ -168,11 +169,7 @@ bool UCombatComponent::CanFire() const
 {
     if (EquippedWeapon == nullptr || Character == nullptr)
         return false;
-
-    if (EquippedWeapon->IsEmpty())
-        return false;
-
-    return true;
+    return !EquippedWeapon->IsEmpty() && bCanFire && CombatState == ECombatState::ECS_Unoccupied;
 }
 
 void UCombatComponent::StartFireTimer()
@@ -201,7 +198,7 @@ void UCombatComponent::MulticastFire_Implementation(const FVector_NetQuantize& T
 {
     if (EquippedWeapon == nullptr)
         return;
-    if (Character)
+    if (Character && CombatState == ECombatState::ECS_Unoccupied)
     {
         Character->PlayFireMontage(bAiming);
         EquippedWeapon->Fire(TraceHitTarget);
@@ -334,10 +331,39 @@ void UCombatComponent::Reload()
     }
 }
 
+// Calculates how much ammo we *intend* to reload
+int32 UCombatComponent::AmountToReload() const
+{
+    if (!EquippedWeapon)
+        return 0;
+
+    const int32 MissingAmmo = EquippedWeapon->GetMagCapacity() - EquippedWeapon->GetAmmo();
+    if (MissingAmmo <= 0)
+        return 0;
+
+    // Return the smaller between what's missing and what we have
+    return FMath::Min(CarriedAmmo, MissingAmmo);
+}
+
+void UCombatComponent::UpdateAmmoValues()
+{
+    if (!Character || !EquippedWeapon)
+        return;
+    const int32 AmmoToReload = AmountToReload();
+    if (AmmoToReload <= 0)
+        return;
+
+    CarriedAmmo -= AmmoToReload;              // Subtract from your carried ammo
+    EquippedWeapon->AddAmmo(AmmoToReload);    // Add to the weapon’s magazine
+
+    Controller = Controller ? Controller : Cast<AOpenShooterPlayerController>(Character->GetController());
+    if (Controller)
+        Controller->SetHUDCarriedAmmo(CarriedAmmo);
+}
+
+// Performs the actual ammo subtraction and updates HUD
 void UCombatComponent::ServerReload_Implementation()
 {
-    if (Character == nullptr || EquippedWeapon == nullptr)
-        return;
     CombatState = ECombatState::ECS_Reloading;
     HandleReload();
 }
@@ -350,7 +376,12 @@ void UCombatComponent::HandleReload()
 void UCombatComponent::FinishReloading()
 {    // This is called from the animation blueprint AnimBP_EpicCharacter
     if (Character && Character->HasAuthority())
+    {
         CombatState = ECombatState::ECS_Unoccupied;
+        UpdateAmmoValues();
+    }
+    if (bFireButtonPressed)
+        Fire();
 }
 
 void UCombatComponent::InterpFOV(const float DeltaSeconds)

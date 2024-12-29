@@ -58,6 +58,8 @@ public:
 
     void SetHUDAmmo();
 
+    void AddAmmo(int32 Amount);
+
 protected:
     // Called when the game starts or when spawned
     virtual void BeginPlay() override;
@@ -134,12 +136,17 @@ private:
 public:
     FORCEINLINE USphereComponent* GetAreaSphere() const { return AreaSphere; }
     FORCEINLINE UMeshComponent* GetMesh() const { return WeaponMesh; }
+
     FORCEINLINE float GetZoomedFOV() const { return ZoomedFOV; }
     FORCEINLINE float GetZoomedInterpSpeed() const { return ZoomedInterpSpeed; }
+
     FORCEINLINE bool IsAutomatic() const { return bAutomatic; }
-    FORCEINLINE float GetFireDelay() const { return FireDelay; }
-    FORCEINLINE bool IsEmpty() const { return Ammo <= 0; }
     FORCEINLINE EWeaponType GetWeaponType() const { return WeaponType; }
+    FORCEINLINE float GetFireDelay() const { return FireDelay; }
+
+    FORCEINLINE bool IsEmpty() const { return Ammo <= 0; }
+    FORCEINLINE int32 GetAmmo() const { return Ammo; }
+    FORCEINLINE int32 GetMagCapacity() const { return MagCapacity; }
 
     // Just for caching
 private:

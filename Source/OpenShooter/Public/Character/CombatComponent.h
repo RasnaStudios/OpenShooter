@@ -78,6 +78,9 @@ protected:
     UFUNCTION(BlueprintCallable)
     void FinishReloading();
 
+    int32 AmountToReload() const;
+    void UpdateAmmoValues();
+
 private:
     UPROPERTY()
     AOpenShooterCharacter* Character;
@@ -165,7 +168,7 @@ private:
 
     // = Weapons =
 
-    UPROPERTY(ReplicatedUsing = OnRep_CarriedAmmo)
+    UPROPERTY(VisibleAnywhere, ReplicatedUsing = OnRep_CarriedAmmo, Category = "Combat")
     int32 CarriedAmmo;
 
     UFUNCTION()
