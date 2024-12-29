@@ -94,5 +94,8 @@ void UOpenShooterAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
         // MuzzleTipTransform.GetLocation(), MuzzleTipTransform.GetLocation() + MuzzleX * 1000, FColor::Red, false, 0.1f, 0, 1);
         // DrawDebugLine(GetWorld(), MuzzleTipTransform.GetLocation(), OpenShooterCharacter->GetHitTarget(), FColor::Yellow, false,
         // 0.1f, 0, 1);
+
+        // We need to disable the IK when reloading, so we use this variable in the blueprint
+        bUseFABRIK = OpenShooterCharacter->GetCombatState() != ECombatState::ECS_Reloading;
     }
 }

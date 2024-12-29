@@ -5,6 +5,7 @@
 #include "Components/ActorComponent.h"
 #include "CoreMinimal.h"
 #include "HUD/OpenShooterHUD.h"
+#include "Types/CombatStates.h"
 #include "Weapon/WeaponTypes.h"
 
 #include "CombatComponent.generated.h"
@@ -65,11 +66,17 @@ protected:
 
     void SetHUDCrosshair(float DeltaSeconds);
 
-    void Reload();
+    void Reload();    // entrypoint function called by the input action (on client)
 
     // We need this RPC from the client to check if it's ok to reload
     UFUNCTION(Server, Reliable)
     void ServerReload();
+
+    // Then we need function to do the same things on server and client
+    void HandleReload();
+
+    UFUNCTION(BlueprintCallable)
+    void FinishReloading();
 
 private:
     UPROPERTY()
@@ -81,6 +88,12 @@ private:
 
     UPROPERTY(ReplicatedUsing = OnRep_EquippedWeapon)
     AWeapon* EquippedWeapon;
+
+    UPROPERTY(ReplicatedUsing = OnRep_CombatState)
+    ECombatState CombatState = ECombatState::ECS_Unoccupied;
+
+    UFUNCTION()
+    void OnRep_CombatState();
 
     UPROPERTY(Replicated)
     bool bAiming;

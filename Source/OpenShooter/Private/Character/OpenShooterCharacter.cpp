@@ -528,6 +528,13 @@ AWeapon* AOpenShooterCharacter::GetEquippedWeapon() const
     return Combat->EquippedWeapon;
 }
 
+ECombatState AOpenShooterCharacter::GetCombatState() const
+{
+    if (Combat == nullptr)
+        return ECombatState::ECS_MAX;
+    return Combat->CombatState;
+}
+
 // ReSharper disable once CppMemberFunctionMayBeConst
 void AOpenShooterCharacter::FirePressed()
 {

@@ -28,6 +28,7 @@ void UCombatComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Out
     DOREPLIFETIME(UCombatComponent, EquippedWeapon);
     DOREPLIFETIME(UCombatComponent, bAiming);
     DOREPLIFETIME_CONDITION(UCombatComponent, CarriedAmmo, COND_OwnerOnly);    // this matter only for the client
+    DOREPLIFETIME(UCombatComponent, CombatState);
 }
 
 void UCombatComponent::BeginPlay()
@@ -117,6 +118,18 @@ void UCombatComponent::OnRep_EquippedWeapon() const
 
         Character->GetCharacterMovement()->bOrientRotationToMovement = false;
         Character->bUseControllerRotationYaw = true;
+    }
+}
+
+void UCombatComponent::OnRep_CombatState()
+{    // all of the following is run on the client
+    switch (CombatState)
+    {
+        case ECombatState::ECS_Reloading:
+            HandleReload();
+            break;
+        default:
+            break;
     }
 }
 
@@ -315,7 +328,7 @@ void UCombatComponent::Reload()
     // Therefore we use the ServerReload function
 
     // To avoid sending useless calls to the server, we check if there are any rounds in the carried ammo
-    if (CarriedAmmo > 0)
+    if (CarriedAmmo > 0 && CombatState != ECombatState::ECS_Reloading)
     {
         ServerReload();
     }
@@ -325,7 +338,19 @@ void UCombatComponent::ServerReload_Implementation()
 {
     if (Character == nullptr || EquippedWeapon == nullptr)
         return;
+    CombatState = ECombatState::ECS_Reloading;
+    HandleReload();
+}
+
+void UCombatComponent::HandleReload()
+{
     Character->PlayReloadMontage();
+}
+
+void UCombatComponent::FinishReloading()
+{    // This is called from the animation blueprint AnimBP_EpicCharacter
+    if (Character && Character->HasAuthority())
+        CombatState = ECombatState::ECS_Unoccupied;
 }
 
 void UCombatComponent::InterpFOV(const float DeltaSeconds)

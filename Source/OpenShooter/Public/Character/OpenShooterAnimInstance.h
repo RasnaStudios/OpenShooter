@@ -83,4 +83,8 @@ private:
     // To distinguish between the EliminationSlot from StandingIdle state machine or the regula Unequipped/Equipped state
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Movement", meta = (AllowPrivateAccess = "true"))
     bool bEliminated;
+
+    // To know when to disable the IK for the left hand
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Movement", meta = (AllowPrivateAccess = "true"))
+    bool bUseFABRIK;
 };
