@@ -107,6 +107,10 @@ void UCombatComponent::EquipWeapon(AWeapon* Weapon)
     if (EquippedWeapon->EquipSound)
         UGameplayStatics::PlaySoundAtLocation(this, EquippedWeapon->EquipSound, Character->GetActorLocation());
 
+    // if the magazine is empty when picked up, we automatically reload
+    if (EquippedWeapon->IsEmpty())
+        Reload();
+
     UE_LOG(LogTemp, Warning, TEXT("Weapon Equipped!"));
 }
 
@@ -196,6 +200,10 @@ void UCombatComponent::FireTimerFinished()
     // needs to check if we still have the fire button pressed
     if (bFireButtonPressed && EquippedWeapon->IsAutomatic())
         Fire();
+
+    // if the magazine is empty, we automatically reload
+    if (EquippedWeapon->IsEmpty())
+        Reload();
 }
 
 void UCombatComponent::ServerFire_Implementation(const FVector_NetQuantize& TraceHitTarget)
