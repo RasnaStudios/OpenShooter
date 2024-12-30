@@ -109,14 +109,14 @@ void AWeapon::OnRep_Owner()
         // We update the HUD with the ammo count.
         // We override this to update the ammo count on the client. For the server we call the same
         // function in the EquipWeapon function.
-        SetHUDAmmo();
+        SetHUDWeaponInfo();
     }
 }
 
 void AWeapon::OnRep_Ammo()
 {
     // Update the HUD with the ammo count when the ammo changes
-    SetHUDAmmo();
+    SetHUDWeaponInfo();
 }
 
 void AWeapon::SpendRound()
@@ -125,13 +125,13 @@ void AWeapon::SpendRound()
     // Subtract 1 from ammo
     Ammo = FMath::Clamp(Ammo - 1, 0, MagCapacity);
     // Update the HUD
-    SetHUDAmmo();
+    SetHUDWeaponInfo();
 }
 
 void AWeapon::AddAmmo(int32 Amount)
 {
     Ammo = FMath::Clamp(Ammo + Amount, 0, MagCapacity);
-    SetHUDAmmo();
+    SetHUDWeaponInfo();
 }
 
 void AWeapon::Fire(const FVector& HitTarget)
@@ -209,10 +209,10 @@ void AWeapon::Drop()
     // The client will receive the OnRep_Owner function and will clear the references there.
     OwnerCharacter = nullptr;
     OwnerController = nullptr;
-    SetHUDAmmo();
+    SetHUDWeaponInfo();
 }
 
-void AWeapon::SetHUDAmmo()
+void AWeapon::SetHUDWeaponInfo()
 {
     // Update the HUD with the ammo count
     // This is called when the weapon is picked up or when the ammo changes after firing
@@ -222,6 +222,9 @@ void AWeapon::SetHUDAmmo()
         OwnerController =
             OwnerController == nullptr ? Cast<AOpenShooterPlayerController>(OwnerCharacter->GetController()) : OwnerController;
         if (OwnerController)
+        {
             OwnerController->SetHUDWeaponAmmo(Ammo);
+            OwnerController->SetHUDWeaponType(WeaponType);
+        }
     }
 }

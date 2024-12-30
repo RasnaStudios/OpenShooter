@@ -101,6 +101,15 @@ void AOpenShooterPlayerController::SetHUDWeaponAmmo(int32 Ammo)
     }
 }
 
+void AOpenShooterPlayerController::SetHUDWeaponType(EWeaponType WeaponType)
+{
+    HUD = HUD == nullptr ? Cast<AOpenShooterHUD>(GetHUD()) : HUD;
+    if (HUD && HUD->CharacterOverlay && HUD->CharacterOverlay->WeaponType)
+    {
+        HUD->CharacterOverlay->WeaponType->SetText(UEnum::GetDisplayValueAsText(WeaponType));
+    }
+}
+
 void AOpenShooterPlayerController::SetHUDCarriedAmmo(int32 Ammo)
 {
     HUD = HUD == nullptr ? Cast<AOpenShooterHUD>(GetHUD()) : HUD;

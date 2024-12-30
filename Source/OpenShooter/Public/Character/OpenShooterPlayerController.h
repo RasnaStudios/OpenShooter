@@ -7,6 +7,7 @@
 
 #include "OpenShooterPlayerController.generated.h"
 
+enum class EWeaponType : uint8;
 class AOpenShooterHUD;
 /**
  *
@@ -25,6 +26,7 @@ public:
     void SetHUDAnnoucement(const FString& Message, float DisplayTime = 5.0f);
     void ClearAnnoucementText();
     void SetHUDWeaponAmmo(int32 Ammo);
+    void SetHUDWeaponType(EWeaponType WeaponType);
     void SetHUDCarriedAmmo(int32 Ammo);
 
 protected:

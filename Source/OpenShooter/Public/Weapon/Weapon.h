@@ -56,7 +56,7 @@ public:
 
     void Drop();
 
-    void SetHUDAmmo();
+    void SetHUDWeaponInfo();
 
     void AddAmmo(int32 Amount);
 
