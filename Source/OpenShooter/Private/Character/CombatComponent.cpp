@@ -89,7 +89,7 @@ void UCombatComponent::EquipWeapon(AWeapon* Weapon)
         Character->GetMesh(), FAttachmentTransformRules::SnapToTargetIncludingScale, "RightHandSocket");
     Character = Character ? Character : Cast<AOpenShooterCharacter>(GetOwner());
     EquippedWeapon->SetOwner(Character);
-    EquippedWeapon->SetHUDAmmo();
+    EquippedWeapon->SetHUDWeaponInfo();
 
     // We set the carried ammo (controller)
     if (CarriedAmmoMap.Contains(EquippedWeapon->GetWeaponType()))
@@ -97,7 +97,10 @@ void UCombatComponent::EquipWeapon(AWeapon* Weapon)
             CarriedAmmoMap[EquippedWeapon->GetWeaponType()];    // this triggers OnRep_CarriedAmmo, and we need to update the HUD
     Controller = Controller ? Controller : Cast<AOpenShooterPlayerController>(Character->GetController());
     if (Controller)
+    {
         Controller->SetHUDCarriedAmmo(CarriedAmmo);
+        Controller->SetHUDWeaponType(EquippedWeapon->GetWeaponType());
+    }
 
     // We need this for the lean/strafing animation on the locally controlled character
     Character->GetCharacterMovement()->bOrientRotationToMovement = false;
