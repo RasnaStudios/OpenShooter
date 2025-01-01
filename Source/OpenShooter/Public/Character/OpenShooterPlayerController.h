@@ -21,6 +21,7 @@ public:
     AOpenShooterHUD* HUD;
 
     void SetHUDHealth(float Health, float MaxHealth);
+    void SetHUDMatchCountdown(float Countdown);
     void SetHUDScore(float Score);
     void SetHUDDefeats(int32 Defeats);
     void SetHUDAnnoucement(const FString& Message, float DisplayTime = 5.0f);
@@ -33,6 +34,14 @@ protected:
     virtual void BeginPlay() override;
     virtual void OnPossess(APawn* InPawn) override;
 
+    virtual void Tick(float DeltaSeconds) override;
+    void SetHUDTime();
+
 private:
     FTimerHandle HideAnnoucementTextTimerHandle;
+
+    // Just temp, we need to move this to gamemode
+    UPROPERTY(EditAnywhere)
+    float MatchTime = 10.f;
+    uint32 CountDownInt = 0;
 };
