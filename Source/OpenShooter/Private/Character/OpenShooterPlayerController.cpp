@@ -17,6 +17,22 @@ void AOpenShooterPlayerController::BeginPlay()
     ClearAnnoucementText();
 }
 
+void AOpenShooterPlayerController::Tick(float DeltaSeconds)
+{
+    Super::Tick(DeltaSeconds);
+    SetHUDTime();
+}
+
+void AOpenShooterPlayerController::SetHUDTime()
+{
+    uint32 SecondsLeft = FMath::CeilToInt(MatchTime - GetWorld()->GetTimeSeconds());
+    if (CountDownInt != SecondsLeft)
+    {
+        SetHUDMatchCountdown(MatchTime - GetWorld()->GetTimeSeconds());
+    }
+    CountDownInt = SecondsLeft;
+}
+
 void AOpenShooterPlayerController::OnPossess(APawn* InPawn)
 {
     Super::OnPossess(InPawn);
@@ -38,6 +54,19 @@ void AOpenShooterPlayerController::SetHUDHealth(float Health, float MaxHealth)
         const FText HealthText =
             FText::FromString(FString::Printf(TEXT("%d/%d"), FMath::CeilToInt(Health), FMath::CeilToInt(MaxHealth)));
         HUD->CharacterOverlay->HealthText->SetText(HealthText);
+    }
+}
+
+void AOpenShooterPlayerController::SetHUDMatchCountdown(float Countdown)
+{
+    HUD = HUD == nullptr ? Cast<AOpenShooterHUD>(GetHUD()) : HUD;
+
+    if (HUD && HUD->CharacterOverlay && HUD->CharacterOverlay->MatchCountdownText)
+    {
+        int32 Minutes = FMath::FloorToInt(Countdown / 60.f);
+        int32 Seconds = Countdown - Minutes * 60;
+        FString CountdownText = FString::Printf(TEXT("%02d:%02d"), Minutes, Seconds);
+        HUD->CharacterOverlay->MatchCountdownText->SetText(FText::FromString(CountdownText));
     }
 }
 

@@ -25,6 +25,9 @@ public:
     UPROPERTY(meta = (BindWidget))
     UTextBlock* HealthText;
 
+    UPROPERTY(meta = (BindWidget))
+    UTextBlock* MatchCountdownText;
+
     // Kills
     UPROPERTY(meta = (BindWidget))
     UTextBlock* ScoreAmount;
