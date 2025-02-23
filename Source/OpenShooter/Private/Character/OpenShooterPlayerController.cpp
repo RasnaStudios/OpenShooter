@@ -6,8 +6,10 @@
 #include "Components/ProgressBar.h"
 #include "Components/RichTextBlock.h"
 #include "Components/TextBlock.h"
+#include "GameModes/OpenShooterGameMode.h"
 #include "HUD/CharacterOverlay.h"
 #include "HUD/OpenShooterHUD.h"
+#include "Net/UnrealNetwork.h"
 
 void AOpenShooterPlayerController::BeginPlay()
 {
@@ -15,6 +17,100 @@ void AOpenShooterPlayerController::BeginPlay()
 
     HUD = Cast<AOpenShooterHUD>(GetHUD());
     ClearAnnoucementText();
+}
+
+void AOpenShooterPlayerController::GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const
+{
+    Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+    DOREPLIFETIME(AOpenShooterPlayerController, MatchState);
+}
+
+void AOpenShooterPlayerController::CheckTimeSync(float DeltaSeconds)
+{
+    SyncRunningTimeSeconds += DeltaSeconds;
+    if (IsLocalController() && SyncRunningTimeSeconds > SyncFrequencySeconds)
+    {
+        ServerSequestServerTime(GetWorld()->GetTimeSeconds());
+        SyncRunningTimeSeconds = 0.f;
+    }
+}
+
+void AOpenShooterPlayerController::Tick(float DeltaSeconds)
+{
+    Super::Tick(DeltaSeconds);
+    SetHUDTime();
+
+    CheckTimeSync(DeltaSeconds);
+}
+
+void AOpenShooterPlayerController::SetHUDTime()
+{
+    uint32 SecondsLeft = FMath::CeilToInt(MatchTime - GetServerTime());
+    if (CountDownInt != SecondsLeft)
+    {
+        SetHUDMatchCountdown(MatchTime - GetServerTime());
+    }
+    CountDownInt = SecondsLeft;
+}
+
+void AOpenShooterPlayerController::ServerSequestServerTime_Implementation(float TimeOfClientRequest)
+{
+    // Called on the client and executed on the server.
+
+    const float ServerTime = GetWorld()->GetTimeSeconds();
+    ClientReportServerTime(TimeOfClientRequest, ServerTime);
+}
+
+void AOpenShooterPlayerController::ClientReportServerTime_Implementation(
+    float TimeOfClientRequest, float TimeServerReceivedClientRequest)
+{
+    // Calculate the round trip time
+    float RoundTripTime = GetWorld()->GetTimeSeconds() - TimeOfClientRequest;
+    // Calculate the server time
+    float CurrentServerTime = TimeServerReceivedClientRequest + RoundTripTime / 2;
+    // Calculate the offset
+    ClientServerDelta = CurrentServerTime - GetWorld()->GetTimeSeconds();
+}
+
+float AOpenShooterPlayerController::GetServerTime()
+{
+    // This requires the ServerSequestServerTime and ClientReportServerTime RPCs to be called
+    // it's done in the ReceivedPlayer function for the earliest possible time, but then it's done periodically in Tick
+    if (HasAuthority())
+        return GetWorld()->GetTimeSeconds();    // Server
+    else
+        return GetWorld()->GetTimeSeconds() + ClientServerDelta;    // Client
+}
+
+void AOpenShooterPlayerController::ReceivedPlayer()
+{
+    Super::ReceivedPlayer();
+    if (IsLocalController())
+    {
+        ServerSequestServerTime(GetWorld()->GetTimeSeconds());
+    }
+}
+
+void AOpenShooterPlayerController::OnMatchStateSet(FName NewState)
+{
+    MatchState = NewState;
+
+    if (MatchState == MatchState::InProgress)
+    {
+        HUD = HUD == nullptr ? Cast<AOpenShooterHUD>(GetHUD()) : HUD;
+        if (HUD)
+            HUD->CharacterOverlay->SetVisibility(ESlateVisibility::Visible);
+    }
+}
+
+void AOpenShooterPlayerController::OnRep_MatchState()
+{
+    if (MatchState == MatchState::InProgress)
+    {
+        HUD = HUD == nullptr ? Cast<AOpenShooterHUD>(GetHUD()) : HUD;
+        if (HUD)
+            HUD->CharacterOverlay->SetVisibility(ESlateVisibility::Visible);
+    }
 }
 
 void AOpenShooterPlayerController::OnPossess(APawn* InPawn)
@@ -38,6 +134,19 @@ void AOpenShooterPlayerController::SetHUDHealth(float Health, float MaxHealth)
         const FText HealthText =
             FText::FromString(FString::Printf(TEXT("%d/%d"), FMath::CeilToInt(Health), FMath::CeilToInt(MaxHealth)));
         HUD->CharacterOverlay->HealthText->SetText(HealthText);
+    }
+}
+
+void AOpenShooterPlayerController::SetHUDMatchCountdown(float Countdown)
+{
+    HUD = HUD == nullptr ? Cast<AOpenShooterHUD>(GetHUD()) : HUD;
+
+    if (HUD && HUD->CharacterOverlay && HUD->CharacterOverlay->MatchCountdownText)
+    {
+        int32 Minutes = FMath::FloorToInt(Countdown / 60.f);
+        int32 Seconds = Countdown - Minutes * 60;
+        FString CountdownText = FString::Printf(TEXT("%02d:%02d"), Minutes, Seconds);
+        HUD->CharacterOverlay->MatchCountdownText->SetText(FText::FromString(CountdownText));
     }
 }
 
