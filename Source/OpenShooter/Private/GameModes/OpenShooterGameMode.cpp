@@ -1,12 +1,32 @@
 // Copyright Epic Games, Inc. All Rights Reserved.
 
-#include "OpenShooterGameMode.h"
+#include "GameModes/OpenShooterGameMode.h"
 
 #include "Character/OpenShooterCharacter.h"
 #include "GameFramework/PlayerStart.h"
 #include "Kismet/GameplayStatics.h"
 #include "OpenShooterPlayerState.h"
 #include "UObject/ConstructorHelpers.h"
+
+AOpenShooterGameMode::AOpenShooterGameMode()
+{
+    bDelayedStart = true;
+    /**
+     * When we set this to true the game will stay in the WaitingToStart state until we call StartMatch().
+     * Until then, the player will be flying pawns that can roam around the map.
+     */
+}
+
+void AOpenShooterGameMode::BeginPlay()
+{
+    Super::BeginPlay();
+
+    if (MatchState == MatchState::WaitingToStart)
+    {
+        // Begins a one-shot timer to start the match when warmup time expires.
+        GetWorldTimerManager().SetTimer(WarmupTimerHandle, this, &AOpenShooterGameMode::StartMatch, WarmupTime, false);
+    }
+}
 
 void AOpenShooterGameMode::PlayerEliminated(AOpenShooterCharacter* EliminatedCharacter,
     AOpenShooterPlayerController* VictimController, AOpenShooterPlayerController* AttackerController)
