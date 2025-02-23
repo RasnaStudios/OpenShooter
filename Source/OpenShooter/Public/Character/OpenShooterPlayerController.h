@@ -33,6 +33,9 @@ public:
     virtual float GetServerTime();             // Synced with server world clock.
     virtual void ReceivedPlayer() override;    // Earliest point where we can sync server clock with client clock
 
+    void OnMatchStateSet(FName NewState);
+    virtual void GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const override;
+
 protected:
     virtual void BeginPlay() override;
     virtual void OnPossess(APawn* InPawn) override;
@@ -70,4 +73,14 @@ private:
     UPROPERTY(EditAnywhere)
     float MatchTime = 10.f;
     uint32 CountDownInt = 0;
+
+    /** Match state is set on the server only, but the client needs to know about it as well, so we replicate it
+     * OnRep_MatchState is called on the clients when the MatchState variable changes on the server, so we can update the UI
+     * in the clients as well.
+     */
+    UPROPERTY(Replicated, ReplicatedUsing = OnRep_MatchState)
+    FName MatchState;
+
+    UFUNCTION()
+    void OnRep_MatchState();
 };

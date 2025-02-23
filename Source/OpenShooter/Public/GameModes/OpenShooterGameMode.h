@@ -29,6 +29,7 @@ public:
 
 protected:
     virtual void BeginPlay() override;
+    virtual void OnMatchStateSet() override;
 
 private:
     FTimerHandle WarmupTimerHandle;    // Tracks the warmup timer before starting the match.

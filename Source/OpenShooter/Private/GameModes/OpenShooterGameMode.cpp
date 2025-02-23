@@ -28,6 +28,20 @@ void AOpenShooterGameMode::BeginPlay()
     }
 }
 
+void AOpenShooterGameMode::OnMatchStateSet()
+{
+    Super::OnMatchStateSet();
+
+    for (FConstPlayerControllerIterator Iterator = GetWorld()->GetPlayerControllerIterator(); Iterator; ++Iterator)
+    {
+        AOpenShooterPlayerController* PlayerController = Cast<AOpenShooterPlayerController>(Iterator->Get());
+        if (PlayerController)
+        {
+            PlayerController->OnMatchStateSet(MatchState);
+        }
+    }
+}
+
 void AOpenShooterGameMode::PlayerEliminated(AOpenShooterCharacter* EliminatedCharacter,
     AOpenShooterPlayerController* VictimController, AOpenShooterPlayerController* AttackerController)
 {

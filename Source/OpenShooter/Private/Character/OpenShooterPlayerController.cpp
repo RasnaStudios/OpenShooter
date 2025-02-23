@@ -6,8 +6,10 @@
 #include "Components/ProgressBar.h"
 #include "Components/RichTextBlock.h"
 #include "Components/TextBlock.h"
+#include "GameModes/OpenShooterGameMode.h"
 #include "HUD/CharacterOverlay.h"
 #include "HUD/OpenShooterHUD.h"
+#include "Net/UnrealNetwork.h"
 
 void AOpenShooterPlayerController::BeginPlay()
 {
@@ -15,6 +17,12 @@ void AOpenShooterPlayerController::BeginPlay()
 
     HUD = Cast<AOpenShooterHUD>(GetHUD());
     ClearAnnoucementText();
+}
+
+void AOpenShooterPlayerController::GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const
+{
+    Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+    DOREPLIFETIME(AOpenShooterPlayerController, MatchState);
 }
 
 void AOpenShooterPlayerController::CheckTimeSync(float DeltaSeconds)
@@ -80,6 +88,28 @@ void AOpenShooterPlayerController::ReceivedPlayer()
     if (IsLocalController())
     {
         ServerSequestServerTime(GetWorld()->GetTimeSeconds());
+    }
+}
+
+void AOpenShooterPlayerController::OnMatchStateSet(FName NewState)
+{
+    MatchState = NewState;
+
+    if (MatchState == MatchState::InProgress)
+    {
+        HUD = HUD == nullptr ? Cast<AOpenShooterHUD>(GetHUD()) : HUD;
+        if (HUD)
+            HUD->CharacterOverlay->SetVisibility(ESlateVisibility::Visible);
+    }
+}
+
+void AOpenShooterPlayerController::OnRep_MatchState()
+{
+    if (MatchState == MatchState::InProgress)
+    {
+        HUD = HUD == nullptr ? Cast<AOpenShooterHUD>(GetHUD()) : HUD;
+        if (HUD)
+            HUD->CharacterOverlay->SetVisibility(ESlateVisibility::Visible);
     }
 }
 

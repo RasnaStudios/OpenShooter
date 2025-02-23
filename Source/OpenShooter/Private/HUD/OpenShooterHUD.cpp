@@ -49,6 +49,9 @@ void AOpenShooterHUD::BeginPlay()
     Super::BeginPlay();
 
     AddCharacterOverlay();
+    // We set the overlay hidden initially. This is changed based on the MatchState in PlayerController
+    if (CharacterOverlay)
+        CharacterOverlay->SetVisibility(ESlateVisibility::Hidden);
 }
 
 void AOpenShooterHUD::AddCharacterOverlay()
