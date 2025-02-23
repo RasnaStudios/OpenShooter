@@ -25,6 +25,9 @@ repos:
     rev: v4.0.0-alpha.8
     hooks:
       - id: prettier
+        # Temporary until https://github.com/prettier/prettier/issues/17170 is fixed
+        additional_dependencies:
+          - prettier@3.5.1
         args: ["--write", "--config", ".prettierrc"]
 
   - repo: https://github.com/Lucas-C/pre-commit-hooks

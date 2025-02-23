@@ -17,20 +17,70 @@ void AOpenShooterPlayerController::BeginPlay()
     ClearAnnoucementText();
 }
 
+void AOpenShooterPlayerController::CheckTimeSync(float DeltaSeconds)
+{
+    SyncRunningTimeSeconds += DeltaSeconds;
+    if (IsLocalController() && SyncRunningTimeSeconds > SyncFrequencySeconds)
+    {
+        ServerSequestServerTime(GetWorld()->GetTimeSeconds());
+        SyncRunningTimeSeconds = 0.f;
+    }
+}
+
 void AOpenShooterPlayerController::Tick(float DeltaSeconds)
 {
     Super::Tick(DeltaSeconds);
     SetHUDTime();
+
+    CheckTimeSync(DeltaSeconds);
 }
 
 void AOpenShooterPlayerController::SetHUDTime()
 {
-    uint32 SecondsLeft = FMath::CeilToInt(MatchTime - GetWorld()->GetTimeSeconds());
+    uint32 SecondsLeft = FMath::CeilToInt(MatchTime - GetServerTime());
     if (CountDownInt != SecondsLeft)
     {
-        SetHUDMatchCountdown(MatchTime - GetWorld()->GetTimeSeconds());
+        SetHUDMatchCountdown(MatchTime - GetServerTime());
     }
     CountDownInt = SecondsLeft;
+}
+
+void AOpenShooterPlayerController::ServerSequestServerTime_Implementation(float TimeOfClientRequest)
+{
+    // Called on the client and executed on the server.
+
+    const float ServerTime = GetWorld()->GetTimeSeconds();
+    ClientReportServerTime(TimeOfClientRequest, ServerTime);
+}
+
+void AOpenShooterPlayerController::ClientReportServerTime_Implementation(
+    float TimeOfClientRequest, float TimeServerReceivedClientRequest)
+{
+    // Calculate the round trip time
+    float RoundTripTime = GetWorld()->GetTimeSeconds() - TimeOfClientRequest;
+    // Calculate the server time
+    float CurrentServerTime = TimeServerReceivedClientRequest + RoundTripTime / 2;
+    // Calculate the offset
+    ClientServerDelta = CurrentServerTime - GetWorld()->GetTimeSeconds();
+}
+
+float AOpenShooterPlayerController::GetServerTime()
+{
+    // This requires the ServerSequestServerTime and ClientReportServerTime RPCs to be called
+    // it's done in the ReceivedPlayer function for the earliest possible time, but then it's done periodically in Tick
+    if (HasAuthority())
+        return GetWorld()->GetTimeSeconds();    // Server
+    else
+        return GetWorld()->GetTimeSeconds() + ClientServerDelta;    // Client
+}
+
+void AOpenShooterPlayerController::ReceivedPlayer()
+{
+    Super::ReceivedPlayer();
+    if (IsLocalController())
+    {
+        ServerSequestServerTime(GetWorld()->GetTimeSeconds());
+    }
 }
 
 void AOpenShooterPlayerController::OnPossess(APawn* InPawn)
